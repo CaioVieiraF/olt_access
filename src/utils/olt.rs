@@ -1,41 +1,26 @@
 use crate::prelude::Result;
 
-use super::command::{CmdArg0, CommandBuilder, ConfT};
+use super::command::{CmdArg0, Command, CommandBuilder, ConfT};
+use serde::{Deserialize, Serialize};
 use std::{
+    io::{Read, Write},
     net::{Ipv4Addr, TcpStream},
     sync::Arc,
 };
 
-use ssh2::Session;
+use ssh2::{Channel, Session};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Interface {
-    position: (u8, u8, u8),
-    prefix: Arc<str>,
-}
-
-impl Default for Interface {
-    fn default() -> Self {
-        Interface {
-            position: Default::default(),
-            prefix: Arc::from(""),
-        }
-    }
-}
-
-impl Interface {
-    pub fn position(&self) -> (u8, u8, u8) {
-        self.position
-    }
-
-    pub fn prefix(&self) -> Arc<str> {
-        self.prefix.clone()
-    }
+    pub shelf: u8,
+    pub slot: u8,
+    pub port: u8,
 }
 
 pub struct Olt {
     session: Session,
     model: OltModel,
+    queue: Vec<Command>,
 }
 
 #[derive(Default)]
@@ -46,11 +31,12 @@ pub struct OltBuilder<S, M> {
 }
 
 impl Interface {
-    pub fn new(position: (u8, u8, u8), prefix: impl Into<String>) -> Interface {
-        Interface {
-            position,
-            prefix: prefix.into().into(),
-        }
+    pub fn new(shelf: u8, slot: u8, port: u8) -> Interface {
+        Interface { shelf, slot, port }
+    }
+
+    pub fn interface(&self) -> (u8, u8, u8) {
+        (self.shelf, self.slot, self.port)
     }
 }
 
@@ -77,8 +63,51 @@ impl Olt {
         OltBuilder::new()
     }
 
-    pub fn configure(&self) -> CommandBuilder<ConfT, CmdArg0> {
-        CommandBuilder::new()
+    pub fn enqueue(&mut self, command: Command) {
+        self.queue.push(command);
+    }
+
+    pub fn is_authenticated(&self) -> bool {
+        self.session.authenticated()
+    }
+
+    pub fn run(&self) -> Result<Vec<i32>> {
+        //let res = Box::new([Box::from(".")]);
+        let mut res = Vec::new();
+        for command in self.queue.iter() {
+            print!("{}: ", command.raw());
+            std::io::stdout().flush()?;
+
+            let mut channel: Channel;
+            match self.session.channel_session() {
+                Ok(c) => channel = c,
+                Err(e) => {
+                    println!("Erro {} ao abrir a sessão: {}", e.code(), e.message());
+                    continue;
+                }
+            }
+
+            let mut s = String::new();
+            match channel.exec(command.raw().trim()) {
+                Ok(_) => {
+                    channel.read_to_string(&mut s).unwrap();
+                }
+                Err(e) => match e.code() {
+                    ssh2::ErrorCode::Session(-22) => {
+                        println!("A requisição do canal foi negada.");
+                    }
+                    _ => panic!("{e}"),
+                },
+            }
+
+            channel.close()?;
+            channel.wait_close()?;
+
+            if let Ok(c) = channel.exit_status() {
+                res.push(c);
+            }
+        }
+        Ok(res)
     }
 }
 
@@ -128,10 +157,12 @@ impl OltBuilder<Ipv4Addr, OltModel> {
 
         session.set_tcp_stream(stream);
         session.handshake()?;
+        session.userauth_password("caiof", "Lab@2023")?;
 
         Ok(Olt {
             model: self.model,
             session,
+            queue: Vec::new(),
         })
     }
 }

@@ -10,5 +10,11 @@ pub enum Error {
     Serialize(#[from] serde_json::Error),
 
     #[error(transparent)]
-    Connection(#[from] ssh2::Error),
+    SshError(#[from] ssh2::Error),
+
+    #[error(transparent)]
+    TomlError(#[from] toml::de::Error),
+
+    #[error(transparent)]
+    CsvError(#[from] csv::Error),
 }

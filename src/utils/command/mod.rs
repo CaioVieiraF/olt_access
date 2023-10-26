@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 pub mod interface;
 
 use std::{marker::PhantomData, rc::Rc};
@@ -18,8 +16,40 @@ pub struct Command {
     raw: Rc<str>,
 }
 
+impl From<&str> for Command {
+    fn from(value: &str) -> Command {
+        Command {
+            raw: Rc::from(value),
+        }
+    }
+}
+
+impl From<Rc<str>> for Command {
+    fn from(value: Rc<str>) -> Command {
+        Command { raw: value }
+    }
+}
+
+impl From<String> for Command {
+    fn from(value: String) -> Command {
+        Command {
+            raw: Rc::from(value),
+        }
+    }
+}
+
+impl Command {
+    pub fn raw(&self) -> Rc<str> {
+        self.raw.clone()
+    }
+
+    pub fn builder() -> CommandBuilder<ConfT, CmdArg0> {
+        CommandBuilder::new()
+    }
+}
+
 pub struct CommandBuilder<T, U> {
-    command: Box<str>,
+    pub command: Rc<str>,
     command_level: PhantomData<T>,
     arg: PhantomData<U>,
 }
@@ -27,7 +57,7 @@ pub struct CommandBuilder<T, U> {
 impl CommandBuilder<ConfT, CmdArg0> {
     pub fn new() -> Self {
         CommandBuilder {
-            command: Box::from(""),
+            command: Rc::from("configure terminal"),
             command_level: PhantomData,
             arg: PhantomData,
         }
@@ -35,7 +65,7 @@ impl CommandBuilder<ConfT, CmdArg0> {
 
     pub fn interface(self) -> CommandBuilder<Interface, CmdArg0> {
         CommandBuilder {
-            command: Box::from("interface"),
+            command: Rc::from("interface"),
             command_level: PhantomData,
             arg: PhantomData,
         }

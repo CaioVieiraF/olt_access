@@ -1,0 +1,194 @@
+configure terminal
+interface gpon_olt-1/1/1
+onu 1 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:1
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.1:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:1
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 2 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:2
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.2:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:2
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 3 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:3
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.3:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:3
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 4 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:4
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.4:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:4
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 5 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:5
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.5:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:5
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 6 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:6
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.6:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:6
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 7 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:7
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.7:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:7
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 8 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:8
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.8:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:8
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 9 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:9
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.9:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:9
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 10 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:10
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.10:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:10
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 11 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:11
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.11:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:11
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+configure terminal
+interface gpon_olt-1/1/1
+onu 12 type F670LV9 sn ZTEG1234567890
+exit
+interface gpon_onu-1/1/1:12
+tcont 1 profile 1G
+gemport 1 tcont 1
+exit
+interface vport-1/1/1.12:1
+service-port 1 user-vlan 1000 vlan 1000
+exit
+pon-onu-mng gpon_onu-1/1/1:12
+service 1 gemport 1 vlan 1000
+wan-ip ipv4 mode pppoe username f670lv9 password f670lv9 vlan-profile 1000 host 1
+security-mgmt 1 mode forward state enable ingress-type iphost 1 protocol web
+end
+end
+write

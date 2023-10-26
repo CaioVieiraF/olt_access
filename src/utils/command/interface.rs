@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::utils::command::{CmdArg0, CmdArg1, CmdArg2, CmdArg3, CmdArg4, Command, CommandBuilder};
 
 use crate::utils::olt::Interface;
@@ -60,7 +58,7 @@ impl CommandBuilder<InterfaceOlt, CmdArg1> {
 }
 
 impl CommandBuilder<InterfaceOlt, CmdArg2> {
-    pub fn sn(&self, sn: impl Into<String>) -> CommandBuilder<InterfaceOlt, CmdArg3> {
+    pub fn sn(self, sn: impl Into<String>) -> CommandBuilder<InterfaceOlt, CmdArg3> {
         CommandBuilder {
             command: format!("{} sn {}", self.command, sn.into()).into(),
             command_level: PhantomData,
@@ -73,9 +71,7 @@ impl CommandBuilder<InterfaceOlt, CmdArg2> {
 
 impl CommandBuilder<InterfaceOlt, CmdArg3> {
     pub fn run(self) -> Command {
-        Command {
-            raw: Rc::from(self.command),
-        }
+        Command { raw: self.command }
     }
 
     pub fn vport_mode(self) -> CommandBuilder<InterfaceOlt, CmdArg4> {
@@ -91,14 +87,14 @@ impl CommandBuilder<InterfaceOlt, CmdArg4> {
     pub fn gemport(self) -> Command {
         let command = format!("{} gemport", self.command);
         Command {
-            raw: Rc::from(command),
+            raw: command.into(),
         }
     }
 
     pub fn manual(self) -> Command {
         let command = format!("{} manual", self.command);
         Command {
-            raw: Rc::from(command),
+            raw: command.into(),
         }
     }
 }
