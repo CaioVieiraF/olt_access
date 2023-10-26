@@ -1,6 +1,0 @@
-vlan = 1000
-
-[interface]
-shelf = 1
-slot = 1
-port = 1
