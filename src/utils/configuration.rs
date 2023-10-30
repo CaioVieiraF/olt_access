@@ -87,7 +87,13 @@ impl From<Vec<Command>> for Config {
         }
     }
 }
-
+struct PppoeInfo<'a> {
+    id: u8,
+    index: u32,
+    interface: Interface,
+    user: &'a str,
+    password: &'a str,
+}
 impl Config {
     pub fn to_file(&self, mut file: File) -> Result<File> {
         for i in self.commands.iter() {
@@ -104,6 +110,8 @@ impl Config {
 
     pub fn get_onu_script(&self) -> Vec<Command> {
         let mut interfaces: Vec<Interface> = Vec::new();
+        let mut wan_interfaces: HashMap<Interface, String> = HashMap::new();
+        let mut onu_pon: Vec<Option<String>> = Vec::new();
         let mut onu_prot: Vec<(u8, String, String)> = Vec::new();
         let mut script: Vec<Command> = Vec::new();
         let vlan = 1000;
@@ -118,6 +126,10 @@ impl Config {
             if let Ok(i) = Interface::try_from(c.to_string()) {
                 if c.contains("olt") {
                     interfaces.push(i);
+                } else if c.contains("pon-onu-mng") {
+                    if let Some(s) = wan_interfaces.get(&i) {
+                        let id = 4;
+                    }
                 }
             } else if cmd_args.len() == 6
                 && cmd_args.first().unwrap() == "onu"

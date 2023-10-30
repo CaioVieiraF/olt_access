@@ -10,7 +10,7 @@ use std::{
 
 use ssh2::{Channel, Session};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, Hash, PartialEq)]
 pub struct Interface {
     pub shelf: u8,
     pub slot: u8,
