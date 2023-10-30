@@ -1,4 +1,4 @@
-use crate::prelude::Result;
+use crate::prelude::{Error, Result};
 
 use super::command::{CmdArg0, Command, CommandBuilder, ConfT};
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use std::{
 
 use ssh2::{Channel, Session};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Interface {
     pub shelf: u8,
     pub slot: u8,
@@ -37,6 +37,37 @@ impl Interface {
 
     pub fn interface(&self) -> (u8, u8, u8) {
         (self.shelf, self.slot, self.port)
+    }
+}
+
+impl TryFrom<String> for Interface {
+    type Error = Error;
+    fn try_from(value: String) -> Result<Self> {
+        let cmd_param: Vec<&str> = value.split(' ').collect();
+        let interface = cmd_param
+            .get(1)
+            .ok_or(Error::Generic("Parse error".into()))?;
+        let interface: Vec<&str> = interface.split('_').collect();
+        let interface = interface
+            .get(1)
+            .ok_or(Error::Generic("Parse error".into()))?;
+        let interface: Vec<&str> = interface.split('/').collect();
+        let interface = Interface {
+            shelf: interface.first().unwrap().parse()?,
+            slot: interface[1].parse()?,
+            port: interface[2].split(':').collect::<Vec<_>>()[0].parse()?,
+        };
+
+        Ok(interface)
+    }
+}
+
+impl TryFrom<Command> for Interface {
+    type Error = Error;
+
+    fn try_from(value: Command) -> Result<Self> {
+        let cmd = value.raw().to_string();
+        Interface::try_from(cmd)
     }
 }
 

@@ -17,4 +17,7 @@ pub enum Error {
 
     #[error(transparent)]
     CsvError(#[from] csv::Error),
+
+    #[error(transparent)]
+    ParseError(#[from] std::num::ParseIntError),
 }
