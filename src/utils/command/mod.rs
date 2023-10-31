@@ -6,7 +6,7 @@ use std::{fs::File, marker::PhantomData, rc::Rc};
 use crate::prelude::Result;
 
 use super::{
-    configuration::{ConfigInfo, GeneralParam},
+    configuration::{ConfigInfo, GeneralParam, PppoeInfo},
     olt::Interface,
     onu::Onu,
 };
@@ -107,11 +107,12 @@ impl Command {
                 config_info.sn.as_str(),
             );
 
+            let pppoe_info = PppoeInfo {
+                user: config_info.pppoe_user.clone(),
+                password: config_info.pppoe_password.clone(),
+            };
             // Gera o script
-            let configure_script = onu.configure_script(Some((
-                config_info.pppoe_user.as_str(),
-                config_info.pppoe_password.as_str(),
-            )));
+            let configure_script = onu.configure_script(Some(&pppoe_info));
             // Adiciona a configuração da ONU no script existente
             script.extend(configure_script);
         }

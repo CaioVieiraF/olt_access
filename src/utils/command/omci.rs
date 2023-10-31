@@ -7,7 +7,7 @@ use super::Omci;
 #[derive(Debug)]
 pub enum WanMode {
     PPPoE,
-    DHCP,
+    Dhcp,
 }
 
 #[derive(Debug)]

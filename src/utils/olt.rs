@@ -1,11 +1,10 @@
 use crate::prelude::{Error, Result};
 
-use super::command::{CmdArg0, Command, CommandBuilder, ConfT};
+use super::command::Command;
 use serde::{Deserialize, Serialize};
 use std::{
     io::{Read, Write},
     net::{Ipv4Addr, TcpStream},
-    sync::Arc,
 };
 
 use ssh2::{Channel, Session};
@@ -47,15 +46,30 @@ impl TryFrom<String> for Interface {
         let interface = cmd_param
             .get(1)
             .ok_or(Error::Generic("Parse error".into()))?;
-        let interface: Vec<&str> = interface.split('_').collect();
+        let interface: Vec<_> = interface.split('_').collect();
         let interface = interface
             .get(1)
             .ok_or(Error::Generic("Parse error".into()))?;
         let interface: Vec<&str> = interface.split('/').collect();
+        let shelf = match interface.first().unwrap().parse() {
+            Ok(s) => Ok(s),
+            Err(_) => {
+                let s: Vec<&str> = interface.first().unwrap().split('-').collect();
+                s.last().unwrap().parse()
+            }
+        };
         let interface = Interface {
-            shelf: interface.first().unwrap().parse()?,
-            slot: interface[1].parse()?,
-            port: interface[2].split(':').collect::<Vec<_>>()[0].parse()?,
+            shelf: shelf?,
+            slot: interface
+                .get(1)
+                .ok_or(Error::Generic("Parse Error.".into()))?
+                .parse()?,
+            port: interface
+                .get(2)
+                .ok_or(Error::Generic("Parse Error.".into()))?
+                .split(':')
+                .collect::<Vec<_>>()[0]
+                .parse()?,
         };
 
         Ok(interface)

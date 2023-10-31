@@ -23,7 +23,7 @@ fn main() -> Result<()> {
 
     // Cria um objeto de configuração com os comandos criados anteriormente.
 
-    let startrun = File::open("startrun.dat")?;
+    let startrun = File::open("startrun.dat").unwrap_or(File::open("script.txt")?);
     let config = Config::from(startrun);
     //config.show_config();
 

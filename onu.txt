@@ -1,32 +1,3029 @@
-interface gpon-olt_1/16/3
-  onu 1 type F670L sn ZTEGC8B6BA6E
-  onu 2 type F670L sn ZTEGC8B554BD
-  onu 3 type F670L sn ZTEGC4A32195
-  onu 4 type F670L sn ZTEGC8B6E7E0
- onu 5 type F670L sn ZTEGC4A32E71
-  onu 6 type F601 sn ZTEGC4A317F3
-  onu 7 type F670L sn ZTEGC8BA2838
-  onu 8 type F670L sn ZTEGC8B9EE47
-  onu 9 type F601 sn ZTEGC4A31438
-  onu 10 type F601 sn ZTEGC4A50AFA
-  onu 11 type F670L sn ZTEGC4A46E6B
-  onu 12 type F670L sn ZTEGC4A46DE9
-  onu 13 type F601 sn ZTEGC4B38D72
-  onu 14 type F670LV9.0 sn ZTEGD19255B2
-  onu 15 type F601 sn ZTEGC4B38EC3
-  onu 16 type F670LV1.1.01 sn ZTEGC4AB9C83
-  onu 17 type F670LV1.1.01 sn ZTEGCF2355DD
-  onu 18 type F670LV1.1.01 sn ZTEGCF234640
-  onu 19 type F670LV1.1.01 sn ZTEGCF23492F
-  onu 20 type F670LV9.0 sn ZTEGD1925977
-  onu 21 type F670LV1.1.01 sn ZTEGCF23B9C8
-  onu 22 type F670LV1.1.01 sn ZTEGCF2376DE
-  onu 23 type F670LV1.1.01 sn ZTEGCF579007
-  onu 24 type F670LV1.1.01 sn ZTEGCF2FE83A
-  onu 25 type F670LV9.0 sn ZTEGD1911E00
-  onu 26 type F670LV9.0 sn ZTEGD19258E2
-  onu 27 type F670LV9.0 sn ZTEGD1910C78
-  onu 28 type F670LV9.0 sn ZTEGD19E783E
-  onu 29 type F670LV9.0 sn ZTEGD1FBDA59
-  onu 30 type F670LV9.0 sn ZTEGD1923493
-  onu 79 type F670L sn ZTEGC8B6EAC1
+Building configuration...
+olleh
+timestamp_write: 10:42:18 10/31/2023
+config-version 2.1
+!
+crtv disable
+!
+load-balance enable
+!
+operator-mode NORMAL
+!
+system-forwarding-mode normal-mode
+!
+!
+!
+set-pnp enable
+add-rack rackno 1 racktype C320Rack
+add-shelf rackno 1 shelfno 1 shelftype C320_SHELF
+add-card rackno 1 shelfno 1 slotno 1 ETGO
+add-card rackno 1 shelfno 1 slotno 2 GTGO
+add-card rackno 1 shelfno 1 slotno 3 PRAM
+add-subcard rackno 1 shelfno 1 slotno 4 subcardno 1 UCDC/3
+!
+ip tcp finwait-time 600
+ip tcp queuemax 5
+ip tcp synwait-time 30
+ip tcp window-size 2144
+!
+ip pool ippool1
+  range 10.26.27.29 10.26.27.250 255.255.255.0
+!
+!
+ip dhcp enable
+!
+ip dhcp pool dhcppool1
+  ip-pool ippool1
+  lease-time infinite
+  dns-server  10.10.1.2
+!
+!
+ip dhcp policy dhcppy 1
+  dhcp-pool dhcppool1
+!
+!
+ip vrf mng
+!
+!
+urpf log off
+!
+fan control fixed-speed rackno 1 shelfno 1
+!
+!
+!
+!
+mac aging-time 300
+mac monitor-period 10
+mac usage-threshold 70
+!
+eth-switch max-frame-length  1600
+port diaglog status-info enable
+!
+sdisk disable
+!
+auto-update backup disable
+auto-update activate disable
+file-server auto-backup cfg server-index 1  ftp ipaddress 192.168.86.200   user zte password f`Q
+file-server manual-backup cfg server-index 1  ftp ipaddress 192.168.86.200  path \Desktop\FTP user zte password f`Q
+file-server auto-backup log server-index 1  ftp ipaddress 192.168.86.200  path \Users\thiago.guimaraes\Desktop\FTP user zte password f`Q
+file-server auto-backup img server-index 1  ftp ipaddress 192.168.86.200  path \Users\thiago.guimaraes\Desktop\FTP user zte password f`Q
+file-server auto-update  server-index 1  ftp ipaddress 192.168.86.78   user zte password f`Q
+file-server boot-server    ftp ipaddress 192.168.86.69   user zte password f`Q
+auto-backup period cfg 15:0:0 oct 5 2023 interval 1
+!
+!
+!
+!
+!
+gpon
+  profile tcont 1G type 1 fixed 102400
+  profile tcont TESTE type 1 fixed 128
+  profile tcont voip type 3 assured 2048 maximum 3072
+  profile tcont 10Mbps type 1 fixed 10240
+  profile tcont 100Mbps type 4 maximum 102400
+  profile tcont UP-50MBPS type 4 maximum 55000
+  profile tcont MNG type 4 maximum 1024
+  profile tcont 2GB type 4 maximum 2048000
+  profile traffic 10Mbps sir 10240 pir 15000 cbs 1023 pbs 1023
+  profile traffic 200Mbps sir 204800 pir 210000 cbs 1023 pbs 1023
+  profile traffic BANDA_DOWN sir 100000 pir 100000 cbs 512 pbs 512
+  profile traffic BANDA_UP sir 100000 pir 100000 cbs 512 pbs 512
+  profile traffic 100Mbps_DOWN sir 102400 pir 102400 cbs 512 pbs 512
+  profile traffic 100Mbps_UP sir 102400 pir 102400 cbs 512 pbs 512
+!
+!
+gpon
+  onu profile sip SIP proxy 10.10.88.208
+  onu profile sip SIP registrar 10.10.88.208
+  onu profile sip VOIP proxy 10.10.88.208
+  onu profile sip VOIP registrar 10.10.88.208
+  onu profile sip SIP-VOIP proxy 10.10.88.208
+  onu profile sip SIP-VOIP registrar 10.10.88.208
+  onu profile ip VOIP gateway 172.16.0.254
+  onu profile ip IP_STATIC gateway 10.10.10.1 primary-dns 8.8.8.8 second-dns 8.8.4.4
+  onu profile vlan 1005 tag-mode tag cvlan 1005
+  onu profile vlan 1000 tag-mode tag cvlan 1000 pri 7
+  onu profile vlan cleiton tag-mode tag cvlan 1000
+  onu profile vlan beatriz tag-mode tag cvlan 1000
+  onu profile vlan Bruno tag-mode tag cvlan 1000
+  onu profile vlan cleitonvoip tag-mode tag cvlan 50
+  onu profile vlan beatrizvoip tag-mode tag cvlan 50
+  onu profile vlan Bruno-Voip tag-mode tag cvlan 50
+  onu profile vlan 50 tag-mode tag cvlan 50
+  onu profile vlan 51 tag-mode tag cvlan 51
+  onu profile vlan 52 tag-mode tag cvlan 52
+  onu profile vlan 53 tag-mode tag cvlan 53
+  onu profile vlan 162 tag-mode tag cvlan 162
+  onu profile vlan 163 tag-mode tag cvlan 163
+  onu profile vlan 25 tag-mode tag cvlan 25
+  onu profile vlan 1001 tag-mode tag cvlan 1001
+  onu profile vlan 1500 tag-mode tag cvlan 1500
+  onu profile dhcp-server  LAN_RES server-ip 192.168.10.0 mask 255.255.255.0 start-ip 192.168.1.20 end-ip 192.168.1.250 primary-dns 8.8.8.8 sec
+ondary-dns 189.8.80.50 gateway 192.168.10.1
+!
+!
+epon
+!
+!
+pon
+  onu-type ALL gpon
+  onu-type F601 gpon description 1GE_BRIDGE
+  onu-type F601 gpon max-tcont 7
+  onu-type F601 gpon max-gemport 32
+  onu-type F601 gpon max-switch-perslot 8
+  onu-type F601 gpon max-flow-perswitch 8
+  onu-type F612 gpon description bridge,voip
+  onu-type F612 gpon max-tcont 7
+  onu-type F612 gpon max-gemport 32
+  onu-type F612 gpon max-switch-perslot 8
+  onu-type F612 gpon max-flow-perswitch 8
+  onu-type F612 gpon max-iphost 5
+  onu-type F612 gpon max-ipv6-host 5
+  onu-type F660 gpon description 4GE,2FXS,4WiFi2.4
+  onu-type F660 gpon max-tcont 5
+  onu-type F660 gpon max-gemport 32
+  onu-type F660 gpon max-switch-perslot 8
+  onu-type F660 gpon max-flow-perswitch 8
+  onu-type F660 gpon max-iphost 5
+  onu-type F660 gpon max-ipv6-host 5
+  onu-type F680 gpon description 4GE,1FXS,4WiFi2.4,4WiFi5
+  onu-type F680 gpon max-tcont 7
+  onu-type F680 gpon max-gemport 32
+  onu-type F680 gpon max-switch-perslot 8
+  onu-type F680 gpon max-flow-perswitch 8
+  onu-type F680 gpon max-iphost 5
+  onu-type F680 gpon max-ipv6-host 5
+  onu-type F6600 gpon description Wifi6
+  onu-type F6600 gpon max-tcont 7
+  onu-type F6600 gpon max-gemport 32
+  onu-type F6600 gpon max-switch-perslot 8
+  onu-type F6600 gpon max-flow-perswitch 8
+  onu-type F6600 gpon max-iphost 5
+  onu-type F6600 gpon max-ipv6-host 5
+  onu-type F670L gpon description 4GE,1FXS,4WiFi2.4,4WiFi5
+  onu-type F670L gpon max-tcont 7
+  onu-type F670L gpon max-gemport 32
+  onu-type F670L gpon max-switch-perslot 8
+  onu-type F670L gpon max-flow-perswitch 8
+  onu-type F670L gpon max-iphost 5
+  onu-type F670L gpon max-ipv6-host 5
+  onu-type F6600P gpon
+  onu-type F6600P gpon max-tcont 8
+  onu-type F6600P gpon max-gemport 32
+  onu-type F6600P gpon max-switch-perslot 8
+  onu-type F6600P gpon max-flow-perswitch 8
+  onu-type F6600P gpon max-iphost 5
+  onu-type F670LV9 gpon description 2pots
+  onu-type F670LV9 gpon max-tcont 7
+  onu-type F670LV9 gpon max-gemport 32
+  onu-type F670LV9 gpon max-switch-perslot 8
+  onu-type F670LV9 gpon max-flow-perswitch 8
+  onu-type F670LV9 gpon max-iphost 5
+  onu-type F670LV9 gpon max-ipv6-host 5
+  onu-type ONU_VEIP gpon description 1GE_BRIDGE
+  onu-type ONU_VEIP gpon max-tcont 7
+  onu-type ONU_VEIP gpon max-gemport 32
+  onu-type ONU_VEIP gpon max-switch-perslot 8
+  onu-type ONU_VEIP gpon max-flow-perswitch 8
+  onu-type ONU_VEIP gpon max-veip 4
+  onu-type fiberhome gpon description 4FE,2POTS,4WIFI
+  onu-type fiberhome gpon max-tcont 7
+  onu-type fiberhome gpon max-switch-perslot 7
+  onu-type fiberhome gpon max-flow-perswitch 31
+  onu-type fiberhome gpon max-iphost 9
+  onu-type fiberhome gpon max-veip 1
+  onu-type-if ALL eth_0/1
+  onu-type-if ALL eth_0/2
+  onu-type-if ALL eth_0/3
+  onu-type-if ALL eth_0/4
+  onu-type-if ALL wifi_0/1
+  onu-type-if ALL wifi_0/2
+  onu-type-if ALL wifi_0/3
+  onu-type-if ALL wifi_0/4
+  onu-type-if F601 eth_0/1
+  onu-type-if F612 eth_0/1
+  onu-type-if F612 eth_0/2
+  onu-type-if F612 pots_0/1
+  onu-type-if F660 eth_0/1
+  onu-type-if F660 eth_0/2
+  onu-type-if F660 eth_0/3
+  onu-type-if F660 eth_0/4
+  onu-type-if F660 pots_0/1
+  onu-type-if F660 pots_0/2
+  onu-type-if F660 wifi_0/1
+  onu-type-if F660 wifi_0/2
+  onu-type-if F660 wifi_0/3
+  onu-type-if F660 wifi_0/4
+  onu-type-if F680 eth_0/1
+  onu-type-if F680 eth_0/2
+  onu-type-if F680 eth_0/3
+  onu-type-if F680 eth_0/4
+  onu-type-if F680 pots_0/1
+  onu-type-if F680 pots_0/2
+  onu-type-if F680 wifi_0/1
+  onu-type-if F680 wifi_0/2
+  onu-type-if F680 wifi_0/3
+  onu-type-if F680 wifi_0/4
+  onu-type-if F680 wifi_0/5
+  onu-type-if F680 wifi_0/6
+  onu-type-if F680 wifi_0/7
+  onu-type-if F680 wifi_0/8
+  onu-type-if F6600 eth_0/1
+  onu-type-if F6600 eth_0/2
+  onu-type-if F6600 eth_0/3
+  onu-type-if F6600 eth_0/4
+  onu-type-if F6600 pots_0/1
+  onu-type-if F6600 pots_0/2
+  onu-type-if F6600 wifi_0/1
+  onu-type-if F6600 wifi_0/2
+  onu-type-if F6600 wifi_0/3
+  onu-type-if F6600 wifi_0/4
+  onu-type-if F6600 wifi_0/5
+  onu-type-if F6600 wifi_0/6
+  onu-type-if F6600 wifi_0/7
+  onu-type-if F6600 wifi_0/8
+  onu-type-if F670L eth_0/1
+  onu-type-if F670L eth_0/2
+  onu-type-if F670L eth_0/3
+  onu-type-if F670L eth_0/4
+  onu-type-if F670L pots_0/1
+  onu-type-if F670L wifi_0/1
+  onu-type-if F670L wifi_0/2
+  onu-type-if F670L wifi_0/3
+  onu-type-if F670L wifi_0/4
+  onu-type-if F670L wifi_0/5
+  onu-type-if F670L wifi_0/6
+  onu-type-if F670L wifi_0/7
+  onu-type-if F670L wifi_0/8
+  onu-type-if F6600P eth_0/1
+  onu-type-if F6600P eth_0/2
+  onu-type-if F6600P eth_0/3
+  onu-type-if F6600P eth_0/4
+  onu-type-if F6600P pots_0/1
+  onu-type-if F6600P wifi_0/1
+  onu-type-if F6600P wifi_0/2
+  onu-type-if F6600P wifi_0/3
+  onu-type-if F6600P wifi_0/4
+  onu-type-if F6600P wifi_0/5
+  onu-type-if F6600P wifi_0/6
+  onu-type-if F6600P wifi_0/7
+  onu-type-if F6600P wifi_0/8
+  onu-type-if F670LV9 eth_0/1
+  onu-type-if F670LV9 eth_0/2
+  onu-type-if F670LV9 eth_0/3
+  onu-type-if F670LV9 eth_0/4
+  onu-type-if F670LV9 pots_0/1
+  onu-type-if F670LV9 pots_0/2
+  onu-type-if F670LV9 wifi_0/1
+  onu-type-if F670LV9 wifi_0/2
+  onu-type-if F670LV9 wifi_0/3
+  onu-type-if F670LV9 wifi_0/4
+  onu-type-if F670LV9 wifi_0/5
+  onu-type-if F670LV9 wifi_0/6
+  onu-type-if F670LV9 wifi_0/7
+  onu-type-if F670LV9 wifi_0/8
+  onu-type-if ONU_VEIP eth_0/1
+  onu-type-if fiberhome eth_0/1
+  onu-type-if fiberhome eth_0/2
+  onu-type-if fiberhome eth_0/3
+  onu-type-if fiberhome eth_0/4
+  onu-type-if fiberhome pots_0/1
+  onu-type-if fiberhome pots_0/2
+  onu-type-if fiberhome wifi_0/1
+  onu-type-if fiberhome wifi_0/2
+  onu-type-if fiberhome wifi_0/3
+  onu-type-if fiberhome wifi_0/4
+  uncfg-onu-display-info model sn vendorid
+onu-profile gpon line ROUTER
+  tcont 1 profile 1G
+  tcont 2 profile default
+  gemport 1 tcont 1
+  gemport 2 tcont 2
+!
+pon
+onu-profile gpon line Teste-jean
+!
+pon
+onu-profile gpon line BRIDGE
+  tcont 1 profile 1G
+  gemport 1 tcont 1
+!
+pon
+onu-profile gpon line ROUTER-voip
+  tcont 1 profile 1G
+  tcont 2 profile voip
+  tcont 2 gap mode3
+  gemport 1 tcont 1
+  gemport 2 tcont 2
+!
+pon
+onu-profile gpon INTERNET
+  tcont 1 profile 1G
+  gemport 1 name gem1 tcont 1
+remote
+  service ServiceName gemport 1 cos 0 vlan 1000
+!
+pon
+onu-profile gpon line TESTE
+  tcont 1 profile 1G
+  gemport 1 tcont 1
+!
+pon
+onu-profile gpon remote ROUTER
+  service 1 gemport 1 vlan 1000
+  vlan port eth_0/1 mode tag vlan 1000
+  vlan port eth_0/4 mode tag vlan 1005
+  mvlan 1005
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1001
+  service 1 gemport 1 vlan 1001
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1001
+  vlan port eth_0/2 mode tag vlan 1001
+  vlan port eth_0/3 mode tag vlan 1001
+  vlan port eth_0/4 mode tag vlan 1001
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1002
+  service 1 gemport 1 vlan 1002
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1002
+  vlan port eth_0/2 mode tag vlan 1002
+  vlan port eth_0/3 mode tag vlan 1002
+  vlan port eth_0/4 mode tag vlan 1002
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1003
+  service 1 gemport 1 vlan 1003
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1003
+  vlan port eth_0/2 mode tag vlan 1003
+  vlan port eth_0/3 mode tag vlan 1003
+  vlan port eth_0/4 mode tag vlan 1003
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1004
+  service 1 gemport 1 vlan 1004
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1004
+  vlan port eth_0/2 mode tag vlan 1004
+  vlan port eth_0/3 mode tag vlan 1004
+  vlan port eth_0/4 mode tag vlan 1004
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1005
+  service 1 gemport 1 vlan 1005
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1005
+  vlan port eth_0/2 mode tag vlan 1005
+  vlan port eth_0/3 mode tag vlan 1005
+  vlan port eth_0/4 mode tag vlan 1005
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1006
+  service 1 gemport 1 vlan 1006
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1006
+  vlan port eth_0/2 mode tag vlan 1006
+  vlan port eth_0/3 mode tag vlan 1006
+  vlan port eth_0/4 mode tag vlan 1006
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1007
+  service 1 gemport 1 vlan 1007
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1007
+  vlan port eth_0/2 mode tag vlan 1007
+  vlan port eth_0/3 mode tag vlan 1007
+  vlan port eth_0/4 mode tag vlan 1007
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1008
+  service 1 gemport 1 vlan 1008
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1008
+  vlan port eth_0/2 mode tag vlan 1008
+  vlan port eth_0/3 mode tag vlan 1008
+  vlan port eth_0/4 mode tag vlan 1008
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1009
+  service 1 gemport 1 vlan 1009
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1009
+  vlan port eth_0/2 mode tag vlan 1009
+  vlan port eth_0/3 mode tag vlan 1009
+  vlan port eth_0/4 mode tag vlan 1009
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1010
+  service 1 gemport 1 vlan 1010
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1010
+  vlan port eth_0/2 mode tag vlan 1010
+  vlan port eth_0/3 mode tag vlan 1010
+  vlan port eth_0/4 mode tag vlan 1010
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1011
+  service 1 gemport 1 vlan 1011
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1011
+  vlan port eth_0/2 mode tag vlan 1011
+  vlan port eth_0/3 mode tag vlan 1011
+  vlan port eth_0/4 mode tag vlan 1011
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1012
+  service 1 gemport 1 vlan 1012
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1012
+  vlan port eth_0/2 mode tag vlan 1012
+  vlan port eth_0/3 mode tag vlan 1012
+  vlan port eth_0/4 mode tag vlan 1012
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1013
+  service 1 gemport 1 vlan 1013
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1013
+  vlan port eth_0/2 mode tag vlan 1013
+  vlan port eth_0/3 mode tag vlan 1013
+  vlan port eth_0/4 mode tag vlan 1013
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1014
+  service 1 gemport 1 vlan 1014
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1014
+  vlan port eth_0/2 mode tag vlan 1014
+  vlan port eth_0/3 mode tag vlan 1014
+  vlan port eth_0/4 mode tag vlan 1014
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1015
+  service 1 gemport 1 vlan 1015
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1015
+  vlan port eth_0/2 mode tag vlan 1015
+  vlan port eth_0/3 mode tag vlan 1015
+  vlan port eth_0/4 mode tag vlan 1015
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1016
+  service 1 gemport 1 vlan 1016
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1016
+  vlan port eth_0/2 mode tag vlan 1016
+  vlan port eth_0/3 mode tag vlan 1016
+  vlan port eth_0/4 mode tag vlan 1016
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1017
+  service 1 gemport 1 vlan 1017
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1017
+  vlan port eth_0/2 mode tag vlan 1017
+  vlan port eth_0/3 mode tag vlan 1017
+  vlan port eth_0/4 mode tag vlan 1017
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1018
+  service 1 gemport 1 vlan 1018
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1018
+  vlan port eth_0/2 mode tag vlan 1018
+  vlan port eth_0/3 mode tag vlan 1018
+  vlan port eth_0/4 mode tag vlan 1018
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1019
+  service 1 gemport 1 vlan 1019
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1019
+  vlan port eth_0/2 mode tag vlan 1019
+  vlan port eth_0/3 mode tag vlan 1019
+  vlan port eth_0/4 mode tag vlan 1019
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1020
+  service 1 gemport 1 vlan 1020
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1020
+  vlan port eth_0/2 mode tag vlan 1020
+  vlan port eth_0/3 mode tag vlan 1020
+  vlan port eth_0/4 mode tag vlan 1020
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1021
+  service 1 gemport 1 vlan 1021
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1021
+  vlan port eth_0/2 mode tag vlan 1021
+  vlan port eth_0/3 mode tag vlan 1021
+  vlan port eth_0/4 mode tag vlan 1021
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1022
+  service 1 gemport 1 vlan 1022
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1022
+  vlan port eth_0/2 mode tag vlan 1022
+  vlan port eth_0/3 mode tag vlan 1022
+  vlan port eth_0/4 mode tag vlan 1022
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1023
+  service 1 gemport 1 vlan 1023
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1023
+  vlan port eth_0/2 mode tag vlan 1023
+  vlan port eth_0/3 mode tag vlan 1023
+  vlan port eth_0/4 mode tag vlan 1023
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1024
+  service 1 gemport 1 vlan 1024
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1024
+  vlan port eth_0/2 mode tag vlan 1024
+  vlan port eth_0/3 mode tag vlan 1024
+  vlan port eth_0/4 mode tag vlan 1024
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1025
+  service 1 gemport 1 vlan 1025
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1025
+  vlan port eth_0/2 mode tag vlan 1025
+  vlan port eth_0/3 mode tag vlan 1025
+  vlan port eth_0/4 mode tag vlan 1025
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1026
+  service 1 gemport 1 vlan 1026
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1026
+  vlan port eth_0/2 mode tag vlan 1026
+  vlan port eth_0/3 mode tag vlan 1026
+  vlan port eth_0/4 mode tag vlan 1026
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1027
+  service 1 gemport 1 vlan 1027
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1027
+  vlan port eth_0/2 mode tag vlan 1027
+  vlan port eth_0/3 mode tag vlan 1027
+  vlan port eth_0/4 mode tag vlan 1027
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1028
+  service 1 gemport 1 vlan 1028
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1028
+  vlan port eth_0/2 mode tag vlan 1028
+  vlan port eth_0/3 mode tag vlan 1028
+  vlan port eth_0/4 mode tag vlan 1028
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1029
+  service 1 gemport 1 vlan 1029
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1029
+  vlan port eth_0/2 mode tag vlan 1029
+  vlan port eth_0/3 mode tag vlan 1029
+  vlan port eth_0/4 mode tag vlan 1029
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1030
+  service 1 gemport 1 vlan 1030
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1030
+  vlan port eth_0/2 mode tag vlan 1030
+  vlan port eth_0/3 mode tag vlan 1030
+  vlan port eth_0/4 mode tag vlan 1030
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1031
+  service 1 gemport 1 vlan 1031
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1031
+  vlan port eth_0/2 mode tag vlan 1031
+  vlan port eth_0/3 mode tag vlan 1031
+  vlan port eth_0/4 mode tag vlan 1031
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1032
+  service 1 gemport 1 vlan 1032
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1032
+  vlan port eth_0/2 mode tag vlan 1032
+  vlan port eth_0/3 mode tag vlan 1032
+  vlan port eth_0/4 mode tag vlan 1032
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1033
+  service 1 gemport 1 vlan 1033
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1033
+  vlan port eth_0/2 mode tag vlan 1033
+  vlan port eth_0/3 mode tag vlan 1033
+  vlan port eth_0/4 mode tag vlan 1033
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1034
+  service 1 gemport 1 vlan 1034
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1034
+  vlan port eth_0/2 mode tag vlan 1034
+  vlan port eth_0/3 mode tag vlan 1034
+  vlan port eth_0/4 mode tag vlan 1034
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1035
+  service 1 gemport 1 vlan 1035
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1035
+  vlan port eth_0/2 mode tag vlan 1035
+  vlan port eth_0/3 mode tag vlan 1035
+  vlan port eth_0/4 mode tag vlan 1035
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1036
+  service 1 gemport 1 vlan 1036
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1036
+  vlan port eth_0/2 mode tag vlan 1036
+  vlan port eth_0/3 mode tag vlan 1036
+  vlan port eth_0/4 mode tag vlan 1036
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1037
+  service 1 gemport 1 vlan 1037
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1037
+  vlan port eth_0/2 mode tag vlan 1037
+  vlan port eth_0/3 mode tag vlan 1037
+  vlan port eth_0/4 mode tag vlan 1037
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1038
+  service 1 gemport 1 vlan 1038
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1038
+  vlan port eth_0/2 mode tag vlan 1038
+  vlan port eth_0/3 mode tag vlan 1038
+  vlan port eth_0/4 mode tag vlan 1038
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1039
+  service 1 gemport 1 vlan 1039
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1039
+  vlan port eth_0/2 mode tag vlan 1039
+  vlan port eth_0/3 mode tag vlan 1039
+  vlan port eth_0/4 mode tag vlan 1039
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1040
+  service 1 gemport 1 vlan 1040
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1040
+  vlan port eth_0/2 mode tag vlan 1040
+  vlan port eth_0/3 mode tag vlan 1040
+  vlan port eth_0/4 mode tag vlan 1040
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1041
+  service 1 gemport 1 vlan 1041
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1041
+  vlan port eth_0/2 mode tag vlan 1041
+  vlan port eth_0/3 mode tag vlan 1041
+  vlan port eth_0/4 mode tag vlan 1041
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1042
+  service 1 gemport 1 vlan 1042
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1042
+  vlan port eth_0/2 mode tag vlan 1042
+  vlan port eth_0/3 mode tag vlan 1042
+  vlan port eth_0/4 mode tag vlan 1042
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1043
+  service 1 gemport 1 vlan 1043
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1043
+  vlan port eth_0/2 mode tag vlan 1043
+  vlan port eth_0/3 mode tag vlan 1043
+  vlan port eth_0/4 mode tag vlan 1043
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1044
+  service 1 gemport 1 vlan 1044
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1044
+  vlan port eth_0/2 mode tag vlan 1044
+  vlan port eth_0/3 mode tag vlan 1044
+  vlan port eth_0/4 mode tag vlan 1044
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1045
+  service 1 gemport 1 vlan 1045
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1045
+  vlan port eth_0/2 mode tag vlan 1045
+  vlan port eth_0/3 mode tag vlan 1045
+  vlan port eth_0/4 mode tag vlan 1045
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1046
+  service 1 gemport 1 vlan 1046
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1046
+  vlan port eth_0/2 mode tag vlan 1046
+  vlan port eth_0/3 mode tag vlan 1046
+  vlan port eth_0/4 mode tag vlan 1046
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1047
+  service 1 gemport 1 vlan 1047
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1047
+  vlan port eth_0/2 mode tag vlan 1047
+  vlan port eth_0/3 mode tag vlan 1047
+  vlan port eth_0/4 mode tag vlan 1047
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1048
+  service 1 gemport 1 vlan 1048
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1048
+  vlan port eth_0/2 mode tag vlan 1048
+  vlan port eth_0/3 mode tag vlan 1048
+  vlan port eth_0/4 mode tag vlan 1048
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1049
+  service 1 gemport 1 vlan 1049
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1049
+  vlan port eth_0/2 mode tag vlan 1049
+  vlan port eth_0/3 mode tag vlan 1049
+  vlan port eth_0/4 mode tag vlan 1049
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1050
+  service 1 gemport 1 vlan 1050
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1050
+  vlan port eth_0/2 mode tag vlan 1050
+  vlan port eth_0/3 mode tag vlan 1050
+  vlan port eth_0/4 mode tag vlan 1050
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1051
+  service 1 gemport 1 vlan 1051
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1051
+  vlan port eth_0/2 mode tag vlan 1051
+  vlan port eth_0/3 mode tag vlan 1051
+  vlan port eth_0/4 mode tag vlan 1051
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1052
+  service 1 gemport 1 vlan 1052
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1052
+  vlan port eth_0/2 mode tag vlan 1052
+  vlan port eth_0/3 mode tag vlan 1052
+  vlan port eth_0/4 mode tag vlan 1052
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1053
+  service 1 gemport 1 vlan 1053
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1053
+  vlan port eth_0/2 mode tag vlan 1053
+  vlan port eth_0/3 mode tag vlan 1053
+  vlan port eth_0/4 mode tag vlan 1053
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1054
+  service 1 gemport 1 vlan 1054
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1054
+  vlan port eth_0/2 mode tag vlan 1054
+  vlan port eth_0/3 mode tag vlan 1054
+  vlan port eth_0/4 mode tag vlan 1054
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1055
+  service 1 gemport 1 vlan 1055
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1055
+  vlan port eth_0/2 mode tag vlan 1055
+  vlan port eth_0/3 mode tag vlan 1055
+  vlan port eth_0/4 mode tag vlan 1055
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1056
+  service 1 gemport 1 vlan 1056
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1056
+  vlan port eth_0/2 mode tag vlan 1056
+  vlan port eth_0/3 mode tag vlan 1056
+  vlan port eth_0/4 mode tag vlan 1056
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1057
+  service 1 gemport 1 vlan 1057
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1057
+  vlan port eth_0/2 mode tag vlan 1057
+  vlan port eth_0/3 mode tag vlan 1057
+  vlan port eth_0/4 mode tag vlan 1057
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1058
+  service 1 gemport 1 vlan 1058
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1058
+  vlan port eth_0/2 mode tag vlan 1058
+  vlan port eth_0/3 mode tag vlan 1058
+  vlan port eth_0/4 mode tag vlan 1058
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1059
+  service 1 gemport 1 vlan 1059
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1059
+  vlan port eth_0/2 mode tag vlan 1059
+  vlan port eth_0/3 mode tag vlan 1059
+  vlan port eth_0/4 mode tag vlan 1059
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1060
+  service 1 gemport 1 vlan 1060
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1060
+  vlan port eth_0/2 mode tag vlan 1060
+  vlan port eth_0/3 mode tag vlan 1060
+  vlan port eth_0/4 mode tag vlan 1060
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1061
+  service 1 gemport 1 vlan 1061
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1061
+  vlan port eth_0/2 mode tag vlan 1061
+  vlan port eth_0/3 mode tag vlan 1061
+  vlan port eth_0/4 mode tag vlan 1061
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1062
+  service 1 gemport 1 vlan 1062
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1062
+  vlan port eth_0/2 mode tag vlan 1062
+  vlan port eth_0/3 mode tag vlan 1062
+  vlan port eth_0/4 mode tag vlan 1062
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1063
+  service 1 gemport 1 vlan 1063
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1063
+  vlan port eth_0/2 mode tag vlan 1063
+  vlan port eth_0/3 mode tag vlan 1063
+  vlan port eth_0/4 mode tag vlan 1063
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1064
+  service 1 gemport 1 vlan 1064
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1064
+  vlan port eth_0/2 mode tag vlan 1064
+  vlan port eth_0/3 mode tag vlan 1064
+  vlan port eth_0/4 mode tag vlan 1064
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1065
+  service 1 gemport 1 vlan 1065
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1065
+  vlan port eth_0/2 mode tag vlan 1065
+  vlan port eth_0/3 mode tag vlan 1065
+  vlan port eth_0/4 mode tag vlan 1065
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1066
+  service 1 gemport 1 vlan 1066
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1066
+  vlan port eth_0/2 mode tag vlan 1066
+  vlan port eth_0/3 mode tag vlan 1066
+  vlan port eth_0/4 mode tag vlan 1066
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1067
+  service 1 gemport 1 vlan 1067
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1067
+  vlan port eth_0/2 mode tag vlan 1067
+  vlan port eth_0/3 mode tag vlan 1067
+  vlan port eth_0/4 mode tag vlan 1067
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1068
+  service 1 gemport 1 vlan 1068
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1068
+  vlan port eth_0/2 mode tag vlan 1068
+  vlan port eth_0/3 mode tag vlan 1068
+  vlan port eth_0/4 mode tag vlan 1068
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1069
+  service 1 gemport 1 vlan 1069
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1069
+  vlan port eth_0/2 mode tag vlan 1069
+  vlan port eth_0/3 mode tag vlan 1069
+  vlan port eth_0/4 mode tag vlan 1069
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1070
+  service 1 gemport 1 vlan 1070
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1070
+  vlan port eth_0/2 mode tag vlan 1070
+  vlan port eth_0/3 mode tag vlan 1070
+  vlan port eth_0/4 mode tag vlan 1070
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1071
+  service 1 gemport 1 vlan 1071
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1071
+  vlan port eth_0/2 mode tag vlan 1071
+  vlan port eth_0/3 mode tag vlan 1071
+  vlan port eth_0/4 mode tag vlan 1071
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1072
+  service 1 gemport 1 vlan 1072
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1072
+  vlan port eth_0/2 mode tag vlan 1072
+  vlan port eth_0/3 mode tag vlan 1072
+  vlan port eth_0/4 mode tag vlan 1072
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1073
+  service 1 gemport 1 vlan 1073
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1073
+  vlan port eth_0/2 mode tag vlan 1073
+  vlan port eth_0/3 mode tag vlan 1073
+  vlan port eth_0/4 mode tag vlan 1073
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1074
+  service 1 gemport 1 vlan 1074
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1074
+  vlan port eth_0/2 mode tag vlan 1074
+  vlan port eth_0/3 mode tag vlan 1074
+  vlan port eth_0/4 mode tag vlan 1074
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1075
+  service 1 gemport 1 vlan 1075
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1075
+  vlan port eth_0/2 mode tag vlan 1075
+  vlan port eth_0/3 mode tag vlan 1075
+  vlan port eth_0/4 mode tag vlan 1075
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1076
+  service 1 gemport 1 vlan 1076
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1076
+  vlan port eth_0/2 mode tag vlan 1076
+  vlan port eth_0/3 mode tag vlan 1076
+  vlan port eth_0/4 mode tag vlan 1076
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1077
+  service 1 gemport 1 vlan 1077
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1077
+  vlan port eth_0/2 mode tag vlan 1077
+  vlan port eth_0/3 mode tag vlan 1077
+  vlan port eth_0/4 mode tag vlan 1077
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1078
+  service 1 gemport 1 vlan 1078
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1078
+  vlan port eth_0/2 mode tag vlan 1078
+  vlan port eth_0/3 mode tag vlan 1078
+  vlan port eth_0/4 mode tag vlan 1078
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1079
+  service 1 gemport 1 vlan 1079
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1079
+  vlan port eth_0/2 mode tag vlan 1079
+  vlan port eth_0/3 mode tag vlan 1079
+  vlan port eth_0/4 mode tag vlan 1079
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1080
+  service 1 gemport 1 vlan 1080
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1080
+  vlan port eth_0/2 mode tag vlan 1080
+  vlan port eth_0/3 mode tag vlan 1080
+  vlan port eth_0/4 mode tag vlan 1080
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1081
+  service 1 gemport 1 vlan 1081
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1081
+  vlan port eth_0/2 mode tag vlan 1081
+  vlan port eth_0/3 mode tag vlan 1081
+  vlan port eth_0/4 mode tag vlan 1081
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1082
+  service 1 gemport 1 vlan 1082
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1082
+  vlan port eth_0/2 mode tag vlan 1082
+  vlan port eth_0/3 mode tag vlan 1082
+  vlan port eth_0/4 mode tag vlan 1082
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1083
+  service 1 gemport 1 vlan 1083
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1083
+  vlan port eth_0/2 mode tag vlan 1083
+  vlan port eth_0/3 mode tag vlan 1083
+  vlan port eth_0/4 mode tag vlan 1083
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1084
+  service 1 gemport 1 vlan 1084
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1084
+  vlan port eth_0/2 mode tag vlan 1084
+  vlan port eth_0/3 mode tag vlan 1084
+  vlan port eth_0/4 mode tag vlan 1084
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1085
+  service 1 gemport 1 vlan 1085
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1085
+  vlan port eth_0/2 mode tag vlan 1085
+  vlan port eth_0/3 mode tag vlan 1085
+  vlan port eth_0/4 mode tag vlan 1085
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1086
+  service 1 gemport 1 vlan 1086
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1086
+  vlan port eth_0/2 mode tag vlan 1086
+  vlan port eth_0/3 mode tag vlan 1086
+  vlan port eth_0/4 mode tag vlan 1086
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1087
+  service 1 gemport 1 vlan 1087
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1087
+  vlan port eth_0/2 mode tag vlan 1087
+  vlan port eth_0/3 mode tag vlan 1087
+  vlan port eth_0/4 mode tag vlan 1087
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1088
+  service 1 gemport 1 vlan 1088
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1088
+  vlan port eth_0/2 mode tag vlan 1088
+  vlan port eth_0/3 mode tag vlan 1088
+  vlan port eth_0/4 mode tag vlan 1088
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1089
+  service 1 gemport 1 vlan 1089
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1089
+  vlan port eth_0/2 mode tag vlan 1089
+  vlan port eth_0/3 mode tag vlan 1089
+  vlan port eth_0/4 mode tag vlan 1089
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1090
+  service 1 gemport 1 vlan 1090
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1090
+  vlan port eth_0/2 mode tag vlan 1090
+  vlan port eth_0/3 mode tag vlan 1090
+  vlan port eth_0/4 mode tag vlan 1090
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1091
+  service 1 gemport 1 vlan 1091
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1091
+  vlan port eth_0/2 mode tag vlan 1091
+  vlan port eth_0/3 mode tag vlan 1091
+  vlan port eth_0/4 mode tag vlan 1091
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1092
+  service 1 gemport 1 vlan 1092
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1092
+  vlan port eth_0/2 mode tag vlan 1092
+  vlan port eth_0/3 mode tag vlan 1092
+  vlan port eth_0/4 mode tag vlan 1092
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1093
+  service 1 gemport 1 vlan 1093
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1093
+  vlan port eth_0/2 mode tag vlan 1093
+  vlan port eth_0/3 mode tag vlan 1093
+  vlan port eth_0/4 mode tag vlan 1093
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1094
+  service 1 gemport 1 vlan 1094
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1094
+  vlan port eth_0/2 mode tag vlan 1094
+  vlan port eth_0/3 mode tag vlan 1094
+  vlan port eth_0/4 mode tag vlan 1094
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1095
+  service 1 gemport 1 vlan 1095
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1095
+  vlan port eth_0/2 mode tag vlan 1095
+  vlan port eth_0/3 mode tag vlan 1095
+  vlan port eth_0/4 mode tag vlan 1095
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1096
+  service 1 gemport 1 vlan 1096
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1096
+  vlan port eth_0/2 mode tag vlan 1096
+  vlan port eth_0/3 mode tag vlan 1096
+  vlan port eth_0/4 mode tag vlan 1096
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1097
+  service 1 gemport 1 vlan 1097
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1097
+  vlan port eth_0/2 mode tag vlan 1097
+  vlan port eth_0/3 mode tag vlan 1097
+  vlan port eth_0/4 mode tag vlan 1097
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1098
+  service 1 gemport 1 vlan 1098
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1098
+  vlan port eth_0/2 mode tag vlan 1098
+  vlan port eth_0/3 mode tag vlan 1098
+  vlan port eth_0/4 mode tag vlan 1098
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1099
+  service 1 gemport 1 vlan 1099
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1099
+  vlan port eth_0/2 mode tag vlan 1099
+  vlan port eth_0/3 mode tag vlan 1099
+  vlan port eth_0/4 mode tag vlan 1099
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1100
+  service 1 gemport 1 vlan 1100
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1100
+  vlan port eth_0/2 mode tag vlan 1100
+  vlan port eth_0/3 mode tag vlan 1100
+  vlan port eth_0/4 mode tag vlan 1100
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1101
+  service 1 gemport 1 vlan 1101
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1101
+  vlan port eth_0/2 mode tag vlan 1101
+  vlan port eth_0/3 mode tag vlan 1101
+  vlan port eth_0/4 mode tag vlan 1101
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1102
+  service 1 gemport 1 vlan 1102
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1102
+  vlan port eth_0/2 mode tag vlan 1102
+  vlan port eth_0/3 mode tag vlan 1102
+  vlan port eth_0/4 mode tag vlan 1102
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1103
+  service 1 gemport 1 vlan 1103
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1103
+  vlan port eth_0/2 mode tag vlan 1103
+  vlan port eth_0/3 mode tag vlan 1103
+  vlan port eth_0/4 mode tag vlan 1103
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1140
+  service 1 gemport 1 vlan 1140
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1140
+  vlan port eth_0/2 mode tag vlan 1140
+  vlan port eth_0/3 mode tag vlan 1140
+  vlan port eth_0/4 mode tag vlan 1140
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1141
+  service 1 gemport 1 vlan 1141
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1141
+  vlan port eth_0/2 mode tag vlan 1141
+  vlan port eth_0/3 mode tag vlan 1141
+  vlan port eth_0/4 mode tag vlan 1141
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1142
+  service 1 gemport 1 vlan 1142
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1142
+  vlan port eth_0/2 mode tag vlan 1142
+  vlan port eth_0/3 mode tag vlan 1142
+  vlan port eth_0/4 mode tag vlan 1142
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1143
+  service 1 gemport 1 vlan 1143
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1143
+  vlan port eth_0/2 mode tag vlan 1143
+  vlan port eth_0/3 mode tag vlan 1143
+  vlan port eth_0/4 mode tag vlan 1143
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1144
+  service 1 gemport 1 vlan 1144
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1144
+  vlan port eth_0/2 mode tag vlan 1144
+  vlan port eth_0/3 mode tag vlan 1144
+  vlan port eth_0/4 mode tag vlan 1144
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1177
+  service 1 gemport 1 vlan 1177
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1177
+  vlan port eth_0/2 mode tag vlan 1177
+  vlan port eth_0/3 mode tag vlan 1177
+  vlan port eth_0/4 mode tag vlan 1177
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1178
+  service 1 gemport 1 vlan 1178
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1178
+  vlan port eth_0/2 mode tag vlan 1178
+  vlan port eth_0/3 mode tag vlan 1178
+  vlan port eth_0/4 mode tag vlan 1178
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1179
+  service 1 gemport 1 vlan 1179
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1179
+  vlan port eth_0/2 mode tag vlan 1179
+  vlan port eth_0/3 mode tag vlan 1179
+  vlan port eth_0/4 mode tag vlan 1179
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1180
+  service 1 gemport 1 vlan 1180
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1180
+  vlan port eth_0/2 mode tag vlan 1180
+  vlan port eth_0/3 mode tag vlan 1180
+  vlan port eth_0/4 mode tag vlan 1180
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1181
+  service 1 gemport 1 vlan 1181
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1181
+  vlan port eth_0/2 mode tag vlan 1181
+  vlan port eth_0/3 mode tag vlan 1181
+  vlan port eth_0/4 mode tag vlan 1181
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1182
+  service 1 gemport 1 vlan 1182
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1182
+  vlan port eth_0/2 mode tag vlan 1182
+  vlan port eth_0/3 mode tag vlan 1182
+  vlan port eth_0/4 mode tag vlan 1182
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1183
+  service 1 gemport 1 vlan 1183
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1183
+  vlan port eth_0/2 mode tag vlan 1183
+  vlan port eth_0/3 mode tag vlan 1183
+  vlan port eth_0/4 mode tag vlan 1183
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1184
+  service 1 gemport 1 vlan 1184
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1184
+  vlan port eth_0/2 mode tag vlan 1184
+  vlan port eth_0/3 mode tag vlan 1184
+  vlan port eth_0/4 mode tag vlan 1184
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1185
+  service 1 gemport 1 vlan 1185
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1185
+  vlan port eth_0/2 mode tag vlan 1185
+  vlan port eth_0/3 mode tag vlan 1185
+  vlan port eth_0/4 mode tag vlan 1185
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1186
+  service 1 gemport 1 vlan 1186
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1186
+  vlan port eth_0/2 mode tag vlan 1186
+  vlan port eth_0/3 mode tag vlan 1186
+  vlan port eth_0/4 mode tag vlan 1186
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1187
+  service 1 gemport 1 vlan 1187
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1187
+  vlan port eth_0/2 mode tag vlan 1187
+  vlan port eth_0/3 mode tag vlan 1187
+  vlan port eth_0/4 mode tag vlan 1187
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1188
+  service 1 gemport 1 vlan 1188
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1188
+  vlan port eth_0/2 mode tag vlan 1188
+  vlan port eth_0/3 mode tag vlan 1188
+  vlan port eth_0/4 mode tag vlan 1188
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1189
+  service 1 gemport 1 vlan 1189
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1189
+  vlan port eth_0/2 mode tag vlan 1189
+  vlan port eth_0/3 mode tag vlan 1189
+  vlan port eth_0/4 mode tag vlan 1189
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1190
+  service 1 gemport 1 vlan 1190
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1190
+  vlan port eth_0/2 mode tag vlan 1190
+  vlan port eth_0/3 mode tag vlan 1190
+  vlan port eth_0/4 mode tag vlan 1190
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1191
+  service 1 gemport 1 vlan 1191
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1191
+  vlan port eth_0/2 mode tag vlan 1191
+  vlan port eth_0/3 mode tag vlan 1191
+  vlan port eth_0/4 mode tag vlan 1191
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1192
+  service 1 gemport 1 vlan 1192
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1192
+  vlan port eth_0/2 mode tag vlan 1192
+  vlan port eth_0/3 mode tag vlan 1192
+  vlan port eth_0/4 mode tag vlan 1192
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1193
+  service 1 gemport 1 vlan 1193
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1193
+  vlan port eth_0/2 mode tag vlan 1193
+  vlan port eth_0/3 mode tag vlan 1193
+  vlan port eth_0/4 mode tag vlan 1193
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1194
+  service 1 gemport 1 vlan 1194
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1194
+  vlan port eth_0/2 mode tag vlan 1194
+  vlan port eth_0/3 mode tag vlan 1194
+  vlan port eth_0/4 mode tag vlan 1194
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1195
+  service 1 gemport 1 vlan 1195
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1195
+  vlan port eth_0/2 mode tag vlan 1195
+  vlan port eth_0/3 mode tag vlan 1195
+  vlan port eth_0/4 mode tag vlan 1195
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1196
+  service 1 gemport 1 vlan 1196
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1196
+  vlan port eth_0/2 mode tag vlan 1196
+  vlan port eth_0/3 mode tag vlan 1196
+  vlan port eth_0/4 mode tag vlan 1196
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1197
+  service 1 gemport 1 vlan 1197
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1197
+  vlan port eth_0/2 mode tag vlan 1197
+  vlan port eth_0/3 mode tag vlan 1197
+  vlan port eth_0/4 mode tag vlan 1197
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1198
+  service 1 gemport 1 vlan 1198
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1198
+  vlan port eth_0/2 mode tag vlan 1198
+  vlan port eth_0/3 mode tag vlan 1198
+  vlan port eth_0/4 mode tag vlan 1198
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1199
+  service 1 gemport 1 vlan 1199
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1199
+  vlan port eth_0/2 mode tag vlan 1199
+  vlan port eth_0/3 mode tag vlan 1199
+  vlan port eth_0/4 mode tag vlan 1199
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1200
+  service 1 gemport 1 vlan 1200
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1200
+  vlan port eth_0/2 mode tag vlan 1200
+  vlan port eth_0/3 mode tag vlan 1200
+  vlan port eth_0/4 mode tag vlan 1200
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1201
+  service 1 gemport 1 vlan 1201
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1201
+  vlan port eth_0/2 mode tag vlan 1201
+  vlan port eth_0/3 mode tag vlan 1201
+  vlan port eth_0/4 mode tag vlan 1201
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1202
+  service 1 gemport 1 vlan 1202
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1202
+  vlan port eth_0/2 mode tag vlan 1202
+  vlan port eth_0/3 mode tag vlan 1202
+  vlan port eth_0/4 mode tag vlan 1202
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1203
+  service 1 gemport 1 vlan 1203
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1203
+  vlan port eth_0/2 mode tag vlan 1203
+  vlan port eth_0/3 mode tag vlan 1203
+  vlan port eth_0/4 mode tag vlan 1203
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1204
+  service 1 gemport 1 vlan 1204
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1204
+  vlan port eth_0/2 mode tag vlan 1204
+  vlan port eth_0/3 mode tag vlan 1204
+  vlan port eth_0/4 mode tag vlan 1204
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1205
+  service 1 gemport 1 vlan 1205
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1205
+  vlan port eth_0/2 mode tag vlan 1205
+  vlan port eth_0/3 mode tag vlan 1205
+  vlan port eth_0/4 mode tag vlan 1205
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1206
+  service 1 gemport 1 vlan 1206
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1206
+  vlan port eth_0/2 mode tag vlan 1206
+  vlan port eth_0/3 mode tag vlan 1206
+  vlan port eth_0/4 mode tag vlan 1206
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1207
+  service 1 gemport 1 vlan 1207
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1207
+  vlan port eth_0/2 mode tag vlan 1207
+  vlan port eth_0/3 mode tag vlan 1207
+  vlan port eth_0/4 mode tag vlan 1207
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1208
+  service 1 gemport 1 vlan 1208
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1208
+  vlan port eth_0/2 mode tag vlan 1208
+  vlan port eth_0/3 mode tag vlan 1208
+  vlan port eth_0/4 mode tag vlan 1208
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1209
+  service 1 gemport 1 vlan 1209
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1209
+  vlan port eth_0/2 mode tag vlan 1209
+  vlan port eth_0/3 mode tag vlan 1209
+  vlan port eth_0/4 mode tag vlan 1209
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1210
+  service 1 gemport 1 vlan 1210
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1210
+  vlan port eth_0/2 mode tag vlan 1210
+  vlan port eth_0/3 mode tag vlan 1210
+  vlan port eth_0/4 mode tag vlan 1210
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1211
+  service 1 gemport 1 vlan 1211
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1211
+  vlan port eth_0/2 mode tag vlan 1211
+  vlan port eth_0/3 mode tag vlan 1211
+  vlan port eth_0/4 mode tag vlan 1211
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1212
+  service 1 gemport 1 vlan 1212
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1212
+  vlan port eth_0/2 mode tag vlan 1212
+  vlan port eth_0/3 mode tag vlan 1212
+  vlan port eth_0/4 mode tag vlan 1212
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1213
+  service 1 gemport 1 vlan 1213
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1213
+  vlan port eth_0/2 mode tag vlan 1213
+  vlan port eth_0/3 mode tag vlan 1213
+  vlan port eth_0/4 mode tag vlan 1213
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1214
+  service 1 gemport 1 vlan 1214
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1214
+  vlan port eth_0/2 mode tag vlan 1214
+  vlan port eth_0/3 mode tag vlan 1214
+  vlan port eth_0/4 mode tag vlan 1214
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1215
+  service 1 gemport 1 vlan 1215
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1215
+  vlan port eth_0/2 mode tag vlan 1215
+  vlan port eth_0/3 mode tag vlan 1215
+  vlan port eth_0/4 mode tag vlan 1215
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1216
+  service 1 gemport 1 vlan 1216
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1216
+  vlan port eth_0/2 mode tag vlan 1216
+  vlan port eth_0/3 mode tag vlan 1216
+  vlan port eth_0/4 mode tag vlan 1216
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1217
+  service 1 gemport 1 vlan 1217
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1217
+  vlan port eth_0/2 mode tag vlan 1217
+  vlan port eth_0/3 mode tag vlan 1217
+  vlan port eth_0/4 mode tag vlan 1217
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1218
+  service 1 gemport 1 vlan 1218
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1218
+  vlan port eth_0/2 mode tag vlan 1218
+  vlan port eth_0/3 mode tag vlan 1218
+  vlan port eth_0/4 mode tag vlan 1218
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1219
+  service 1 gemport 1 vlan 1219
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1219
+  vlan port eth_0/2 mode tag vlan 1219
+  vlan port eth_0/3 mode tag vlan 1219
+  vlan port eth_0/4 mode tag vlan 1219
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1220
+  service 1 gemport 1 vlan 1220
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1220
+  vlan port eth_0/2 mode tag vlan 1220
+  vlan port eth_0/3 mode tag vlan 1220
+  vlan port eth_0/4 mode tag vlan 1220
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1221
+  service 1 gemport 1 vlan 1221
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1221
+  vlan port eth_0/2 mode tag vlan 1221
+  vlan port eth_0/3 mode tag vlan 1221
+  vlan port eth_0/4 mode tag vlan 1221
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1222
+  service 1 gemport 1 vlan 1222
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1222
+  vlan port eth_0/2 mode tag vlan 1222
+  vlan port eth_0/3 mode tag vlan 1222
+  vlan port eth_0/4 mode tag vlan 1222
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1223
+  service 1 gemport 1 vlan 1223
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1223
+  vlan port eth_0/2 mode tag vlan 1223
+  vlan port eth_0/3 mode tag vlan 1223
+  vlan port eth_0/4 mode tag vlan 1223
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1224
+  service 1 gemport 1 vlan 1224
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1224
+  vlan port eth_0/2 mode tag vlan 1224
+  vlan port eth_0/3 mode tag vlan 1224
+  vlan port eth_0/4 mode tag vlan 1224
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1225
+  service 1 gemport 1 vlan 1225
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1225
+  vlan port eth_0/2 mode tag vlan 1225
+  vlan port eth_0/3 mode tag vlan 1225
+  vlan port eth_0/4 mode tag vlan 1225
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1226
+  service 1 gemport 1 vlan 1226
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1226
+  vlan port eth_0/2 mode tag vlan 1226
+  vlan port eth_0/3 mode tag vlan 1226
+  vlan port eth_0/4 mode tag vlan 1226
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1227
+  service 1 gemport 1 vlan 1227
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1227
+  vlan port eth_0/2 mode tag vlan 1227
+  vlan port eth_0/3 mode tag vlan 1227
+  vlan port eth_0/4 mode tag vlan 1227
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1228
+  service 1 gemport 1 vlan 1228
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1228
+  vlan port eth_0/2 mode tag vlan 1228
+  vlan port eth_0/3 mode tag vlan 1228
+  vlan port eth_0/4 mode tag vlan 1228
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1229
+  service 1 gemport 1 vlan 1229
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1229
+  vlan port eth_0/2 mode tag vlan 1229
+  vlan port eth_0/3 mode tag vlan 1229
+  vlan port eth_0/4 mode tag vlan 1229
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1230
+  service 1 gemport 1 vlan 1230
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1230
+  vlan port eth_0/2 mode tag vlan 1230
+  vlan port eth_0/3 mode tag vlan 1230
+  vlan port eth_0/4 mode tag vlan 1230
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1231
+  service 1 gemport 1 vlan 1231
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1231
+  vlan port eth_0/2 mode tag vlan 1231
+  vlan port eth_0/3 mode tag vlan 1231
+  vlan port eth_0/4 mode tag vlan 1231
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1232
+  service 1 gemport 1 vlan 1232
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1232
+  vlan port eth_0/2 mode tag vlan 1232
+  vlan port eth_0/3 mode tag vlan 1232
+  vlan port eth_0/4 mode tag vlan 1232
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1233
+  service 1 gemport 1 vlan 1233
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1233
+  vlan port eth_0/2 mode tag vlan 1233
+  vlan port eth_0/3 mode tag vlan 1233
+  vlan port eth_0/4 mode tag vlan 1233
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1234
+  service 1 gemport 1 vlan 1234
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1234
+  vlan port eth_0/2 mode tag vlan 1234
+  vlan port eth_0/3 mode tag vlan 1234
+  vlan port eth_0/4 mode tag vlan 1234
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1235
+  service 1 gemport 1 vlan 1235
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1235
+  vlan port eth_0/2 mode tag vlan 1235
+  vlan port eth_0/3 mode tag vlan 1235
+  vlan port eth_0/4 mode tag vlan 1235
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1236
+  service 1 gemport 1 vlan 1236
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1236
+  vlan port eth_0/2 mode tag vlan 1236
+  vlan port eth_0/3 mode tag vlan 1236
+  vlan port eth_0/4 mode tag vlan 1236
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1237
+  service 1 gemport 1 vlan 1237
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1237
+  vlan port eth_0/2 mode tag vlan 1237
+  vlan port eth_0/3 mode tag vlan 1237
+  vlan port eth_0/4 mode tag vlan 1237
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1238
+  service 1 gemport 1 vlan 1238
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1238
+  vlan port eth_0/2 mode tag vlan 1238
+  vlan port eth_0/3 mode tag vlan 1238
+  vlan port eth_0/4 mode tag vlan 1238
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1239
+  service 1 gemport 1 vlan 1239
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1239
+  vlan port eth_0/2 mode tag vlan 1239
+  vlan port eth_0/3 mode tag vlan 1239
+  vlan port eth_0/4 mode tag vlan 1239
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1240
+  service 1 gemport 1 vlan 1240
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1240
+  vlan port eth_0/2 mode tag vlan 1240
+  vlan port eth_0/3 mode tag vlan 1240
+  vlan port eth_0/4 mode tag vlan 1240
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1241
+  service 1 gemport 1 vlan 1241
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1241
+  vlan port eth_0/2 mode tag vlan 1241
+  vlan port eth_0/3 mode tag vlan 1241
+  vlan port eth_0/4 mode tag vlan 1241
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1242
+  service 1 gemport 1 vlan 1242
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1242
+  vlan port eth_0/2 mode tag vlan 1242
+  vlan port eth_0/3 mode tag vlan 1242
+  vlan port eth_0/4 mode tag vlan 1242
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1243
+  service 1 gemport 1 vlan 1243
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1243
+  vlan port eth_0/2 mode tag vlan 1243
+  vlan port eth_0/3 mode tag vlan 1243
+  vlan port eth_0/4 mode tag vlan 1243
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1244
+  service 1 gemport 1 vlan 1244
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1244
+  vlan port eth_0/2 mode tag vlan 1244
+  vlan port eth_0/3 mode tag vlan 1244
+  vlan port eth_0/4 mode tag vlan 1244
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1245
+  service 1 gemport 1 vlan 1245
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1245
+  vlan port eth_0/2 mode tag vlan 1245
+  vlan port eth_0/3 mode tag vlan 1245
+  vlan port eth_0/4 mode tag vlan 1245
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1246
+  service 1 gemport 1 vlan 1246
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1246
+  vlan port eth_0/2 mode tag vlan 1246
+  vlan port eth_0/3 mode tag vlan 1246
+  vlan port eth_0/4 mode tag vlan 1246
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1247
+  service 1 gemport 1 vlan 1247
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1247
+  vlan port eth_0/2 mode tag vlan 1247
+  vlan port eth_0/3 mode tag vlan 1247
+  vlan port eth_0/4 mode tag vlan 1247
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1248
+  service 1 gemport 1 vlan 1248
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1248
+  vlan port eth_0/2 mode tag vlan 1248
+  vlan port eth_0/3 mode tag vlan 1248
+  vlan port eth_0/4 mode tag vlan 1248
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1249
+  service 1 gemport 1 vlan 1249
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1249
+  vlan port eth_0/2 mode tag vlan 1249
+  vlan port eth_0/3 mode tag vlan 1249
+  vlan port eth_0/4 mode tag vlan 1249
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1250
+  service 1 gemport 1 vlan 1250
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1250
+  vlan port eth_0/2 mode tag vlan 1250
+  vlan port eth_0/3 mode tag vlan 1250
+  vlan port eth_0/4 mode tag vlan 1250
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1251
+  service 1 gemport 1 vlan 1251
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1251
+  vlan port eth_0/2 mode tag vlan 1251
+  vlan port eth_0/3 mode tag vlan 1251
+  vlan port eth_0/4 mode tag vlan 1251
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1252
+  service 1 gemport 1 vlan 1252
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1252
+  vlan port eth_0/2 mode tag vlan 1252
+  vlan port eth_0/3 mode tag vlan 1252
+  vlan port eth_0/4 mode tag vlan 1252
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1253
+  service 1 gemport 1 vlan 1253
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1253
+  vlan port eth_0/2 mode tag vlan 1253
+  vlan port eth_0/3 mode tag vlan 1253
+  vlan port eth_0/4 mode tag vlan 1253
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1254
+  service 1 gemport 1 vlan 1254
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1254
+  vlan port eth_0/2 mode tag vlan 1254
+  vlan port eth_0/3 mode tag vlan 1254
+  vlan port eth_0/4 mode tag vlan 1254
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1255
+  service 1 gemport 1 vlan 1255
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1255
+  vlan port eth_0/2 mode tag vlan 1255
+  vlan port eth_0/3 mode tag vlan 1255
+  vlan port eth_0/4 mode tag vlan 1255
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1256
+  service 1 gemport 1 vlan 1256
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1256
+  vlan port eth_0/2 mode tag vlan 1256
+  vlan port eth_0/3 mode tag vlan 1256
+  vlan port eth_0/4 mode tag vlan 1256
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1257
+  service 1 gemport 1 vlan 1257
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1257
+  vlan port eth_0/2 mode tag vlan 1257
+  vlan port eth_0/3 mode tag vlan 1257
+  vlan port eth_0/4 mode tag vlan 1257
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1258
+  service 1 gemport 1 vlan 1258
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1258
+  vlan port eth_0/2 mode tag vlan 1258
+  vlan port eth_0/3 mode tag vlan 1258
+  vlan port eth_0/4 mode tag vlan 1258
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1259
+  service 1 gemport 1 vlan 1259
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1259
+  vlan port eth_0/2 mode tag vlan 1259
+  vlan port eth_0/3 mode tag vlan 1259
+  vlan port eth_0/4 mode tag vlan 1259
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1260
+  service 1 gemport 1 vlan 1260
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1260
+  vlan port eth_0/2 mode tag vlan 1260
+  vlan port eth_0/3 mode tag vlan 1260
+  vlan port eth_0/4 mode tag vlan 1260
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1261
+  service 1 gemport 1 vlan 1261
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1261
+  vlan port eth_0/2 mode tag vlan 1261
+  vlan port eth_0/3 mode tag vlan 1261
+  vlan port eth_0/4 mode tag vlan 1261
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1262
+  service 1 gemport 1 vlan 1262
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1262
+  vlan port eth_0/2 mode tag vlan 1262
+  vlan port eth_0/3 mode tag vlan 1262
+  vlan port eth_0/4 mode tag vlan 1262
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1263
+  service 1 gemport 1 vlan 1263
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1263
+  vlan port eth_0/2 mode tag vlan 1263
+  vlan port eth_0/3 mode tag vlan 1263
+  vlan port eth_0/4 mode tag vlan 1263
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1264
+  service 1 gemport 1 vlan 1264
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1264
+  vlan port eth_0/2 mode tag vlan 1264
+  vlan port eth_0/3 mode tag vlan 1264
+  vlan port eth_0/4 mode tag vlan 1264
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1265
+  service 1 gemport 1 vlan 1265
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1265
+  vlan port eth_0/2 mode tag vlan 1265
+  vlan port eth_0/3 mode tag vlan 1265
+  vlan port eth_0/4 mode tag vlan 1265
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1266
+  service 1 gemport 1 vlan 1266
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1266
+  vlan port eth_0/2 mode tag vlan 1266
+  vlan port eth_0/3 mode tag vlan 1266
+  vlan port eth_0/4 mode tag vlan 1266
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1267
+  service 1 gemport 1 vlan 1267
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1267
+  vlan port eth_0/2 mode tag vlan 1267
+  vlan port eth_0/3 mode tag vlan 1267
+  vlan port eth_0/4 mode tag vlan 1267
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1268
+  service 1 gemport 1 vlan 1268
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1268
+  vlan port eth_0/2 mode tag vlan 1268
+  vlan port eth_0/3 mode tag vlan 1268
+  vlan port eth_0/4 mode tag vlan 1268
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1269
+  service 1 gemport 1 vlan 1269
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1269
+  vlan port eth_0/2 mode tag vlan 1269
+  vlan port eth_0/3 mode tag vlan 1269
+  vlan port eth_0/4 mode tag vlan 1269
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1270
+  service 1 gemport 1 vlan 1270
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1270
+  vlan port eth_0/2 mode tag vlan 1270
+  vlan port eth_0/3 mode tag vlan 1270
+  vlan port eth_0/4 mode tag vlan 1270
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1271
+  service 1 gemport 1 vlan 1271
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1271
+  vlan port eth_0/2 mode tag vlan 1271
+  vlan port eth_0/3 mode tag vlan 1271
+  vlan port eth_0/4 mode tag vlan 1271
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1272
+  service 1 gemport 1 vlan 1272
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1272
+  vlan port eth_0/2 mode tag vlan 1272
+  vlan port eth_0/3 mode tag vlan 1272
+  vlan port eth_0/4 mode tag vlan 1272
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1273
+  service 1 gemport 1 vlan 1273
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1273
+  vlan port eth_0/2 mode tag vlan 1273
+  vlan port eth_0/3 mode tag vlan 1273
+  vlan port eth_0/4 mode tag vlan 1273
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1274
+  service 1 gemport 1 vlan 1274
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1274
+  vlan port eth_0/2 mode tag vlan 1274
+  vlan port eth_0/3 mode tag vlan 1274
+  vlan port eth_0/4 mode tag vlan 1274
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1275
+  service 1 gemport 1 vlan 1275
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1275
+  vlan port eth_0/2 mode tag vlan 1275
+  vlan port eth_0/3 mode tag vlan 1275
+  vlan port eth_0/4 mode tag vlan 1275
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1276
+  service 1 gemport 1 vlan 1276
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1276
+  vlan port eth_0/2 mode tag vlan 1276
+  vlan port eth_0/3 mode tag vlan 1276
+  vlan port eth_0/4 mode tag vlan 1276
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1277
+  service 1 gemport 1 vlan 1277
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1277
+  vlan port eth_0/2 mode tag vlan 1277
+  vlan port eth_0/3 mode tag vlan 1277
+  vlan port eth_0/4 mode tag vlan 1277
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1278
+  service 1 gemport 1 vlan 1278
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1278
+  vlan port eth_0/2 mode tag vlan 1278
+  vlan port eth_0/3 mode tag vlan 1278
+  vlan port eth_0/4 mode tag vlan 1278
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1279
+  service 1 gemport 1 vlan 1279
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1279
+  vlan port eth_0/2 mode tag vlan 1279
+  vlan port eth_0/3 mode tag vlan 1279
+  vlan port eth_0/4 mode tag vlan 1279
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1280
+  service 1 gemport 1 vlan 1280
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1280
+  vlan port eth_0/2 mode tag vlan 1280
+  vlan port eth_0/3 mode tag vlan 1280
+  vlan port eth_0/4 mode tag vlan 1280
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1281
+  service 1 gemport 1 vlan 1281
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1281
+  vlan port eth_0/2 mode tag vlan 1281
+  vlan port eth_0/3 mode tag vlan 1281
+  vlan port eth_0/4 mode tag vlan 1281
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1282
+  service 1 gemport 1 vlan 1282
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1282
+  vlan port eth_0/2 mode tag vlan 1282
+  vlan port eth_0/3 mode tag vlan 1282
+  vlan port eth_0/4 mode tag vlan 1282
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1283
+  service 1 gemport 1 vlan 1283
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1283
+  vlan port eth_0/2 mode tag vlan 1283
+  vlan port eth_0/3 mode tag vlan 1283
+  vlan port eth_0/4 mode tag vlan 1283
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1284
+  service 1 gemport 1 vlan 1284
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1284
+  vlan port eth_0/2 mode tag vlan 1284
+  vlan port eth_0/3 mode tag vlan 1284
+  vlan port eth_0/4 mode tag vlan 1284
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1285
+  service 1 gemport 1 vlan 1285
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1285
+  vlan port eth_0/2 mode tag vlan 1285
+  vlan port eth_0/3 mode tag vlan 1285
+  vlan port eth_0/4 mode tag vlan 1285
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1286
+  service 1 gemport 1 vlan 1286
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1286
+  vlan port eth_0/2 mode tag vlan 1286
+  vlan port eth_0/3 mode tag vlan 1286
+  vlan port eth_0/4 mode tag vlan 1286
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1287
+  service 1 gemport 1 vlan 1287
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1287
+  vlan port eth_0/2 mode tag vlan 1287
+  vlan port eth_0/3 mode tag vlan 1287
+  vlan port eth_0/4 mode tag vlan 1287
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1288
+  service 1 gemport 1 vlan 1288
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1288
+  vlan port eth_0/2 mode tag vlan 1288
+  vlan port eth_0/3 mode tag vlan 1288
+  vlan port eth_0/4 mode tag vlan 1288
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1138
+  service 1 gemport 1 vlan 1138
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1138
+  vlan port eth_0/2 mode tag vlan 1138
+  vlan port eth_0/3 mode tag vlan 1138
+  vlan port eth_0/4 mode tag vlan 1138
+!
+pon
+onu-profile gpon remote SRV-4-RTR-1139
+  service 1 gemport 1 vlan 1139
+  service 2 gemport 2 vlan 3964
+  vlan port eth_0/1 mode tag vlan 1139
+  vlan port eth_0/2 mode tag vlan 1139
+  vlan port eth_0/3 mode tag vlan 1139
+  vlan port eth_0/4 mode tag vlan 1139
+!
+pon
+onu-profile gpon remote BRIDGE
+  vlan port eth_0/1 mode tag vlan 1000
+!
+pon
+ otdr ftp-server MKT 10.0.250.253 username zte password zte path otdr/routinetest/10.10.82.2
+!
+!
+onu-pnp
+!
+vlan-reserve 4091 out-voip
+vlan-reserve 4092 in-voip
+vlan-reserve 4094 gpon
+!
+vlan database
+  vlan 1,10,20,23,25,30,39
+  vlan 50-53,69,100-102
+  vlan 109-111,113,162-163
+  vlan 200,210,250,255,300
+  vlan 333,999-1001,1005
+  vlan 1111,1456,2000,2241
+  vlan 2530,3001,3021-3026
+  vlan 3099,4000-4006
+  vlan 4090-4092,4094
+!
+vlan 10
+  name test
+!
+vlan 100
+  name DADOS
+  description TESTE VLAN DADOS LEO
+!
+vlan 101
+  name VOIP
+  description TESTE VLAN VOIP LEO
+!
+vlan 102
+  name IPTV
+  description TESTE VLAN IPTV LEO
+  multicast-packet drop-unknown
+!
+vlan 109
+  name TESTE_123456
+  description TESTE_12345678
+!
+vlan 210
+  name gerencia
+!
+vlan 255
+  supervlan 1
+!
+vlan 300
+  description testegerencia
+!
+vlan 1000
+  name PPPoE
+!
+vlan 1005
+  name dhcp
+  multicast-packet drop-unknown
+!
+vlan 1456
+  name CAIOTESTE
+  description CAIOTESTE
+!
+vlan 3001
+  name teste-lacp2
+!
+vlan 3021
+  name Bruno
+!
+vlan 3022
+  name BEATRIZ
+!
+vlan 3023
+  name cleiton
+!
+vlan 4000
+  name teste-lacp
+!
+vlan 4001
+  name teste-lacp1
+!
+vlan 4002
+  name TESTE
+!
+vlan 4003
+  name TESTE_123
+!
+vlan 4004
+  name GERENCIA_TESTE
+!
+vlan-smart-qinq enable
+!
+!
+his-performance sample enable
+his-performance alarm enable
+his-performance auto-upload disable
+!
+!
+clock
+!
+!
+
+!
+clock
+!
+!
+
+!
+ptp
+!
+!
+ip dhcp snooping control-port enable
+port-identification mode profile
+port-identification format-profile ZTE
+  port-identification add string / index 1
+  port-identification add string / index 2
+  port-identification add string / index 3
+  port-identification add variable SN index 4
+  port-identification add string / index 5
+  port-identification add variable Port index 6
+  port-identification add string / index 7
+  port-identification add variable Slot index 8
+  port-identification add string / index 9
+!
+port-identification format-profile PPPOE-PLUS-AMERICANET
+  port-identification add variable Access-Node-ID index 1
+  port-identification add string / index 2
+  port-identification add variable Slot index 3
+  port-identification add string / index 4
+  port-identification add variable Port index 5
+  port-identification add string / index 6
+  port-identification add variable Onu-Number index 7
+  port-identification add string / index 8
+  port-identification add variable SN index 9
+!
+port-identification format-profile GPON_SUMICITY
+!
+port-identification operator-profile ZTE
+!
+port-identification operator-profile OPERATOR-PROFILE
+  port-identification format atm PPPOE-PLUS-AMERICANET
+  port-identification format eth PPPOE-PLUS-AMERICANET
+  port-identification format pon PPPOE-PLUS-AMERICANET
+  pppoe-intermediate-agent enable
+!
+port-identification operator-profile global OPERATOR-PROFILE
+!
+port-identification access-node-id-type access-node-name
+port-identification rackno 1 frameno 1
+port-identification access-node-name OLT_SUMICITY
+!
+dhcpv6-l2-relay-agent vlan 1005 enable
+!
+pppoe-intermediate-agent enable
+!
+security mac-move-report enable
+security mac-anti-spoofing enable
+!
+igmp enable
+igmp mvlan 102
+igmp mvlan 102 version-mode v1 accept
+igmp mvlan 102 version-mode v2 accept
+igmp mvlan 102 version-mode v3 accept
+igmp mvlan 1005
+igmp mvlan 1005 version-mode v1 accept
+igmp mvlan 1005 version-mode v2 accept
+igmp mvlan 1005 version-mode v3 accept
+mld disable
+  mib-compatibility iftable v2
+!
+ip-source-guard disable
+ipv6 nd snooping disable
+!
+
+traffic-profile 10M ip cir 1021 cbs 1023 pir 2024 pbs 1023
+!
+monitor session 1
+monitor session 1 destination dst-ip 10.10.89.16 src-ip 10.10.82.5
+!
+!
+security port-protect disable
+security user-communication control enable
+security user-communication svlan 1005
+security user-communication svlan 22
+security user-communication svlan 22 cvlan 22
+security user-communication svlan 255
+security user-communication svlan 39
+security user-communication svlan 200
+!
+!
+acl extended number 101
+!
+acl link number 200
+!
+acl hybrid number 300
+!
+acl hybrid number 350
+!
+acl standard name ACL-SNMP
+!
+!
+virtual-mac flexible-syntax-profile MT
+add Ctrl-Byte 0 width 6 index 6
+exit
+virtual-mac access-node-id 0
+!
+epm
+ mode passthrough
+
+
+
+
+
+!
+!
+!
+interface mng1
+  ip address 172.16.10.6 255.255.255.0
+  config-filename
+  negotiation auto
+  tag-mode untag
+!
+interface loopback1
+  ip address 10.99.99.2 255.255.255.255
+!
+interface vlan 10
+  ip address 25.25.25.2 255.255.255.252
+!
+interface vlan 20
+  ip address 1.1.1.1 255.255.255.0
+!
+interface vlan 69
+  ip address 10.10.81.3 255.255.255.0
+!
+interface vlan 111
+  ip address 10.1.1.1 255.255.255.252
+  mpls ip
+!
+interface vlan 210
+  ip address 10.10.82.5 255.255.255.0
+  mpls ip
+!
+interface vlan 250
+  ip address 172.16.250.226 255.255.255.240
+!
+interface vlan 300
+!
+interface vlan 1000
+  ip mtu 1480
+!
+interface vlan 1005
+!
+interface vlan 2530
+  ip address 10.26.27.1 255.255.255.0
+  ip dhcp policy dhcppy
+  ip dhcp mode server
+!
+interface vlan 3021
+  ip address 44.44.44.44 255.255.255.0
+!
+interface vlan 3022
+  ip address 4.4.4.4 255.255.255.0
+!
+interface vlan 3023
+  ip address 2.2.2.2 255.255.255.0
+!
+interface vlan 4002
+  byname TESTE_2
+!
+interface vlan 4003
+  byname TESTE_123456
+!
+interface vlan 4005
+  ip address 30.30.30.2 255.255.255.252
+!
+interface vlan 4006
+!
+interface null1
+!
+interface smartgroup1
+  smartgroup load-balance src-dst-mac
+  smartgroup mode on
+  switchport mode trunk
+  switchport vlan 1 tag
+!
+interface smartgroup2
+  smartgroup load-balance src-dst-mac
+  smartgroup mode 802.3ad
+  switchport mode trunk
+  switchport vlan 1,999 tag
+!
+interface smartgroup5
+  smartgroup load-balance src-dst-mac
+  smartgroup mode on
+  switchport mode trunk
+  switchport vlan 1 tag
+!
+interface smartgroup11
+  smartgroup load-balance src-dst-mac
+  smartgroup mode 802.3ad
+  switchport mode hybrid
+  switchport vlan 3001 tag
+!
+interface smartgroup50
+  smartgroup load-balance src-dst-mac
+  smartgroup mode 802.3ad
+  switchport mode hybrid
+  switchport vlan 4000-4001 tag
+!
+interface smartgroup80
+  smartgroup load-balance src-dst-mac
+  smartgroup mode on
+  switchport mode trunk
+  switchport vlan 1 tag
+!
+interface supervlan1
+!
+interface supervlan2
+!
+interface epon-olt_1/1/1
+  shutdown
+  linktrap disable
+  p2p mode group
+!
+interface epon-olt_1/1/2
+  shutdown
+  linktrap disable
+  p2p mode group
+!
+interface epon-olt_1/1/3
+  shutdown
+  linktrap disable
+  p2p mode group
+!
+interface epon-olt_1/1/4
+  shutdown
+  linktrap disable
+  p2p mode group
+!
+interface epon-olt_1/1/5
+  shutdown
+  linktrap disable
+  p2p mode group
+!
+interface epon-olt_1/1/6
+  shutdown
+  linktrap disable
+  p2p mode group
+!
+interface epon-olt_1/1/7
+  shutdown
+  linktrap disable
+  p2p mode group
+!
+interface epon-olt_1/1/8
+  shutdown
+  linktrap disable
+  p2p mode group
+!
+interface gpon-olt_1/2/1
+  no shutdown
+  linktrap disable
+  description TESTE.b
+  name CAIO
+  onu 1 type F6600P sn ZTEGCE1B00F1
+!
+interface gpon-onu_1/2/1:1
+  sn-bind enable sn
+  tcont 1 profile 1G
+  gemport 1 tcont 1
+  service-port 1 vport 1 user-vlan 1000 vlan 1000
+!
+interface gpon-olt_1/2/2
+  no shutdown
+  linktrap disable
+!
+interface gpon-olt_1/2/3
+  no shutdown
+  linktrap disable
+  name LAB_Zte
+  range-mode 200 400
+!
+interface gpon-olt_1/2/4
+  no shutdown
+  linktrap disable
+!
+interface gpon-olt_1/2/5
+  no shutdown
+  linktrap disable
+!
+interface gpon-olt_1/2/6
+  no shutdown
+  linktrap disable
+!
+interface gpon-olt_1/2/7
+  no shutdown
+  linktrap disable
+!
+interface gpon-olt_1/2/8
+  no shutdown
+  linktrap disable
+  range-mode 0 400
+!
+interface gei_1/4/1
+  no shutdown
+  hybrid-attribute fiber
+  negotiation auto
+  flowcontrol disable
+  linktrap enable
+  switchport mode hybrid
+  switchport default vlan 210
+  switchport vlan 200,4001 tag
+  port-protect disable
+  uplink-isolate disable
+!
+interface xgei_1/4/2
+  phy-attribute lan
+  no shutdown
+  hybrid-attribute fiber
+  no negotiation auto
+  speed 10000
+  duplex full
+  flowcontrol disable
+  linktrap enable
+  switchport mode trunk
+  switchport vlan 1,50-53,69,111,113 tag
+  switchport vlan 210,1000-1001,1005 tag
+  switchport vlan 1111,2241,3021-3026 tag
+  switchport vlan 3099,4005 tag
+  port-protect disable
+  uplink-isolate disable
+!
+interface gei_1/4/3
+  no shutdown
+  hybrid-attribute copper
+  negotiation auto
+  flowcontrol disable
+  linktrap enable
+  description #NAO MEXER# RETIFICADORA ZTE
+  switchport mode hybrid
+  switchport vlan 113,1000 tag
+  port-protect disable
+  uplink-isolate disable
+!
+!
+mpls ldp router-id loopback1
+mpls ldp dynamic-capability
+!
+pw-class 1
+!
+!
+pw 1
+!
+!
+pw-redundancy-group 1
+!
+!
+!
+!
+!
+!
+!
+!
+ip route 0.0.0.0 0.0.0.0 10.10.82.1
+!
+!
+router ospf 1
+  router-id 10.99.99.2
+  mpls traffic-eng router-id loopback1
+  network 10.1.1.0 0.0.0.3 area 0.0.0.0
+  network 10.99.99.2 0.0.0.0 area 0.0.0.0
+!
+ipoa inatmarp-interval 10
+ipoa gateway-arp-interval 10
+!
+mpnat service service-port 9999
+mpnat trans-table aging-time 60
+mpnat onu-telnet idle-time 3
+mpnat onu-ftp aging-time 5
+mpnat onu-snmp aging-time 30
+mpnat onu-ftp-data aging-time 5
+mpnat onu-mng-port auto-alloc disable
+mpnat modem-telnet idle-time 3
+!
+pon
+  rogue-onu-detect 1 enable locate enable auto-shutdown enable
+  rogue-onu-detect 2 enable locate enable auto-shutdown disable
+!
+!
+pon-onu-mng gpon-onu_1/2/1:1
+  service 1 gemport 1 vlan 1000
+  wan-ip 1 mode pppoe username f670l password f670l vlan-profile 1000 host 1
+  vlan port eth_0/1 mode trunk
+  vlan port eth_0/1 vlan 100,200
+!
+!
+pon
+!
+!
+mac vpn cc1a.fab1.76b2
+!
+!
+!
+auto-write enable
+auto-write 12:51:59  everyday
+!
+inband-management enable
+!
+username user-suspend mode none
+!
+username high-level-security disable
+username inactivity-day 120
+username pwd-expire-day 90
+!
+version V4.8.35
+!
+hostname OLT-C320
+!
+enable secret level 15 5 RcMLuUKvnFZX9kNAV6A/UA==
+!
+service password-encryption
+!
+!
+!
+!
+!
+user-authentication-type aaa
+user-authorization-type aaa
+!
+help message full
+!
+clock timezone BRASILIA -3 0
+!
+banner incoming @
+*************************************************************************
+Welcome to ZXAN product C320 of ZTE Corporation
+*************************************************************************
+@
+!
+message-of-day @
+@
+!
+privilege show all level 5 show pon power
+privilege show all level 5 show pon onu
+privilege show all level 5 show gpon onu
+privilege show all level 5 show gpon remote-onu
+privilege show level 5 show pon
+privilege show level 5 show gpon
+!
+service timestamps log datetime localtime
+service timestamps debug datetime localtime
+!
+!
+!
+!
+snmp-server location Lab-MultiPRO
+snmp-server contact NetworkManager +55 91234-5678
+snmp-server trap-source 10.10.82.5
+snmp-server packetsize 500
+snmp-server engine-id mode mac
+snmp-server group GroupPriv0 v3 priv read AllView
+snmp-server group GroupPriv5 v3 priv read AllView write ViewPriv5
+snmp-server group GroupPriv10 v3 priv read AllView write ViewPriv10
+snmp-server group GroupPriv15 v3 priv read AllView write AllView
+snmp-server community TESTE view AllView ro
+snmp-server community TESTE2 view AllView rw
+snmp-server community Commun1 view AllView rw
+snmp-server community NETNUMEN view AllView ro
+snmp-server community OLT_r3aD view AllView ro
+snmp-server community ZABBIXRO view AllView ro
+snmp-server community ZABBIXRW view AllView rw
+snmp-server community NETNUMEN1 view AllView rw
+snmp-server community NETNUMEN2 view AllView rw
+snmp-server community OLT_Wr1t3 view AllView rw
+snmp-server view AllView 1.2 included
+snmp-server view AllView 1.3 included
+snmp-server view ViewPriv5 1.2 included
+snmp-server view ViewPriv5 1.3 included
+snmp-server view ViewPriv5 1.3.6.1.4.1.3902.1082.10.1 excluded
+snmp-server view ViewPriv5 1.3.6.1.4.1.3902.1082.10.10 excluded
+snmp-server view ViewPriv5 1.3.6.1.4.1.3902.1082.20.1 excluded
+snmp-server view ViewPriv5 1.3.6.1.4.1.3902.1082.20.10 excluded
+snmp-server view ViewPriv10 1.2 included
+snmp-server view ViewPriv10 1.3 included
+snmp-server view ViewPriv10 1.3.6.1.4.1.3902.1082.20.10 excluded
+snmp-server host 10.10.82.5  version 2c ZABBIXRW enable NOTIFICATIONS target-addr-name EMS_10.10.82.5 isnmsserver udp-port 162 trap-report-comp
+atibility v20
+snmp-server host 10.10.88.201  version 2c NETNUMEN enable NOTIFICATIONS target-addr-name EMS_10.10.88.201 isnmsserver udp-port 162 trap-report-
+compatibility v20
+snmp-server host 10.10.89.225  version 2c NETNUMEN2 enable NOTIFICATIONS target-addr-name EMS_10.10.89.225 isnmsserver udp-port 162 trap-report
+-compatibility v20
+!
+!
+no ftp-server enable listen 21
+ftp-server top-directory  /flash/
+!
+ntp server 200.160.7.186 priority 1
+ntp server 200.160.0.8 priority 2
+ntp poll-interval 4
+ntp enable
+ntp client
+ntp alarm-threshold 10
+!
+logging alarmlog enable
+logging exc-event auto-write enable
+logging console notification
+logging level notification
+logging cmdlog enable
+logging snmplog enable
+logging igmplog enable
+syslog facility local3
+syslog severity 5
+syslog hostname-field hostname
+syslog-server host enable 192.168.89.200 fport 1514 lport 1514 alarmlog level notification snmplog ALL facility local1
+syslog-server source 10.10.82.5
+line console idle-timeout 15
+line console absolute-timeout 1440
+line telnet idle-timeout 1000
+line telnet absolute-timeout 1440
+line telnet users 16
+line cli detail-info-show disable
+
+no hotkey ctrl_g
+no hotkey ctrl_l
+no hotkey ctrl_o
+no hotkey ctrl_r
+no hotkey ctrl_s
+no hotkey ctrl_t
+!
+ssh server enable
+ssh server authentication mode aaa
+ssh server authentication type pap
+no ssh server only
+ssh server version 2
+!
+!
+aaa group-server radius-authen 1
+  server 1 2.2.2.3 secret-key 7E3A5FB4393D96593B53AF798F59F5EAD2C43DE736ACD75A7D5D6B5FEC935F75D0F97E4260479E9011D0E8FE8D6E4A43285B53C5006F33C2D
+8CF4EA33D375745 port 1812
+  algorithm first
+  user-name-format strip-domain
+  vendor enable
+  class-as-car disable
+!
+!
+aaa group-server radius-account 1
+  algorithm first
+  user-name-format include-domain
+  vendor enable
+  local-buffer disable
+!
+!
+radius attribute vendor-specific vendor-id 3902
+!
+!
+!
+radius server-port-check on
+!
+!
+tacacs enable
+tacacs-server timeout 5
+tacacs-server deadtime 5
+tacacs key-encrypt
+tacacs-server packet 1024
+tacacs-server key secret F2AD105590F8675B55E97A3ED6F5E558B66E409A5F34A11DFD752016F2770A87A02FD7FF142FCC633A3365B0F05718DEE8921D2B6BCC672D8B398C
+F10B76448D
+tacacs-client 172.16.10.6
+!
+tacacs-server host vrf mng 10.10.89.16
+!
+aaa group-server tacacs+ pospre
+  server vrf mng 10.10.89.16 master
+!
+aaa group-server tacacs+ tacacs-server
+!
+!
+aaa authorization config-commands
+aaa authorization console
+aaa authentication enable default none
+aaa accounting commands 15 default stop-only group pospre
+aaa authentication login default group pospre
+aaa authorization exec default local group pospre
+!
+!
+alarm enable
+alarm confirm
+alarm trap-confirm retry 3 timeout 20
+nms-hello-trap disable
+alarm report-speed 0
+alarm anti-jitter 0
+!
+end

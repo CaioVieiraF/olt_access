@@ -87,12 +87,17 @@ impl From<Vec<Command>> for Config {
         }
     }
 }
-struct PppoeInfo<'a> {
-    id: u8,
-    index: u32,
-    interface: Interface,
-    user: &'a str,
-    password: &'a str,
+
+#[derive(Debug)]
+pub struct PppoeInfo {
+    pub user: String,
+    pub password: String,
+}
+
+struct OnuTypeSn {
+    r#type: String,
+    sn: String,
+    pppoe: Option<PppoeInfo>,
 }
 impl Config {
     pub fn to_file(&self, mut file: File) -> Result<File> {
@@ -109,14 +114,12 @@ impl Config {
     }
 
     pub fn get_onu_script(&self) -> Vec<Command> {
-        let mut interfaces: Vec<Interface> = Vec::new();
-        let mut wan_interfaces: HashMap<Interface, String> = HashMap::new();
-        let mut onu_pon: Vec<Option<String>> = Vec::new();
-        let mut onu_prot: Vec<(u8, String, String)> = Vec::new();
+        let mut onu_list: HashMap<Interface, HashMap<u8, OnuTypeSn>> = HashMap::new();
         let mut script: Vec<Command> = Vec::new();
         let vlan = 1000;
-        let mut pppoe_users: Vec<(String, String)> = Vec::new();
 
+        let mut pon_buffer: Option<(Interface, u8)> = None;
+        let mut interface_buffer: Option<Interface> = None;
         for c in self.commands.iter() {
             if !c.contains(' ') {
                 continue;
@@ -125,11 +128,13 @@ impl Config {
             let cmd_args: Vec<String> = c.split(' ').map(String::from).collect();
             if let Ok(i) = Interface::try_from(c.to_string()) {
                 if c.contains("olt") {
-                    interfaces.push(i);
+                    interface_buffer = Some(i);
                 } else if c.contains("pon-onu-mng") {
-                    if let Some(s) = wan_interfaces.get(&i) {
-                        let id = 4;
-                    }
+                    println!("{c}");
+                    let id: Vec<_> = cmd_args.last().unwrap().split(':').collect();
+                    let id = id.last().unwrap().parse().unwrap();
+
+                    pon_buffer = Some((i, id));
                 }
             } else if cmd_args.len() == 6
                 && cmd_args.first().unwrap() == "onu"
@@ -137,27 +142,47 @@ impl Config {
                 && cmd_args.get(4).unwrap() == "sn"
             {
                 let id: u8 = cmd_args.get(1).unwrap().parse().unwrap();
-                let r#type = cmd_args.get(3).unwrap();
-                let sn = cmd_args.get(5).unwrap();
 
-                onu_prot.push((id, sn.to_string(), r#type.to_string()));
+                let onu = OnuTypeSn {
+                    r#type: cmd_args.get(3).unwrap().to_string(),
+                    sn: cmd_args.get(5).unwrap().to_string(),
+                    pppoe: None,
+                };
+
+                if let Some(ref i) = interface_buffer {
+                    match onu_list.get_mut(i) {
+                        Some(h) => {
+                            h.insert(id, onu);
+                        }
+                        None => {
+                            let mut new_map = HashMap::new();
+                            new_map.insert(id, onu);
+                            onu_list.insert(i.clone(), new_map);
+                        }
+                    }
+                }
             } else if cmd_args.len() >= 10 && cmd_args[0] == "wan-ip" {
-                let username = &cmd_args[5];
-                let password = &cmd_args[7];
-                pppoe_users.push((username.to_string(), password.to_string()));
+                if let Some(ref b) = pon_buffer {
+                    let new_info = PppoeInfo {
+                        user: cmd_args[5].clone(),
+                        password: cmd_args[7].clone(),
+                    };
+
+                    let id = b.1;
+                    if let Some(o) = onu_list.get_mut(&b.0) {
+                        if let Some(k) = o.get_mut(&id) {
+                            k.pppoe = Some(new_info);
+                        }
+                    }
+                }
             }
         }
 
-        interfaces.reverse();
-        for inter in interfaces {
-            while let Some(i) = onu_prot.pop() {
-                let onu = Onu::new(i.0, inter.interface(), vlan, &i.2, &i.1);
-                let config = onu.configure_script(None);
+        for (key, value) in onu_list {
+            for (id, onu_info) in value {
+                let new_onu = Onu::new(id, key.interface(), vlan, &onu_info.r#type, &onu_info.sn);
+                let config = new_onu.configure_script(onu_info.pppoe.as_ref());
                 script.extend(config);
-
-                if i.0 == 1 {
-                    break;
-                }
             }
         }
 

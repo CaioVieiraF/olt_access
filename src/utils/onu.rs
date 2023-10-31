@@ -1,9 +1,12 @@
 use crate::Command;
 
-use super::command::{
-    interface::InterfaceOnu,
-    omci::{IngressType, Protocol},
-    CmdArg0, CommandBuilder,
+use super::{
+    command::{
+        interface::InterfaceOnu,
+        omci::{IngressType, Protocol},
+        CmdArg0, CommandBuilder,
+    },
+    configuration::PppoeInfo,
 };
 
 #[derive(Debug)]
@@ -30,7 +33,7 @@ impl Onu {
         }
     }
 
-    pub fn configure_script(&self, pppoe: Option<(&str, &str)>) -> Vec<Command> {
+    pub fn configure_script(&self, pppoe: Option<&PppoeInfo>) -> Vec<Command> {
         // Cria um vetor vazio onde serão armazenados os comandos.
         let mut script: Vec<Command> = Vec::new();
 
@@ -90,8 +93,8 @@ impl Onu {
         script.push(service_gemport);
 
         if let Some(p) = pppoe {
-            let user = p.0;
-            let pass = p.1;
+            let user = &p.user;
+            let pass = &p.password;
             // Cria a WAN em pppoe
             let wan_ip = enter_pon_mng
                 .clone()
