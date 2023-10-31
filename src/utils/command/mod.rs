@@ -98,6 +98,11 @@ impl Command {
 
         // Itera por cada configuração para criar um script de configuração para cada ONU.
         for (i, config_info) in configurations.iter().enumerate() {
+            let pppoe_info = PppoeInfo {
+                user: config_info.pppoe_user.clone(),
+                password: config_info.pppoe_password.clone(),
+            };
+
             // Cria a ONU
             let onu = Onu::new(
                 (i + 1) as u8,
@@ -105,14 +110,10 @@ impl Command {
                 params.vlan,
                 config_info.model.as_str(),
                 config_info.sn.as_str(),
+                Some(pppoe_info),
             );
-
-            let pppoe_info = PppoeInfo {
-                user: config_info.pppoe_user.clone(),
-                password: config_info.pppoe_password.clone(),
-            };
             // Gera o script
-            let configure_script = onu.configure_script(Some(&pppoe_info));
+            let configure_script = onu.configure_script();
             // Adiciona a configuração da ONU no script existente
             script.extend(configure_script);
         }

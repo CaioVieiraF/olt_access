@@ -8,7 +8,7 @@ use utils::{command::Command, configuration::Config};
 
 fn main() -> Result<()> {
     // Cria uma lista de comandos que será transformada em um script
-    //let mut script: Vec<Command> = Vec::new();
+    let mut script: Vec<Command> = Vec::new();
 
     // Carrega os arquivos de configuração das ONU
     //let general_info = File::open("parameters.toml")?;
@@ -27,9 +27,13 @@ fn main() -> Result<()> {
     let config = Config::from(startrun);
     //config.show_config();
 
-    let mut onu_script = config.get_onu_script();
-    onu_script.push(Command::write());
-    let onu_script = Config::from(onu_script);
+    let onu_script = config.extract_onu(1000);
+    for onu in onu_script {
+        let cmd = onu.configure_script();
+        script.extend(cmd);
+    }
+    script.push(Command::write());
+    let onu_script = Config::from(script);
     //onu_script.show_config();
 
     // Gera um arquivo para colocar o script.

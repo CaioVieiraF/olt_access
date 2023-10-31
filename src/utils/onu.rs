@@ -20,20 +20,29 @@ pub struct Onu {
     vlan: u16,
     model: Box<str>,
     sn: Box<str>,
+    pppoe: Option<PppoeInfo>,
 }
 
 impl Onu {
-    pub fn new(id: u8, interface_pon: (u8, u8, u8), vlan: u16, model: &str, sn: &str) -> Onu {
+    pub fn new(
+        id: u8,
+        interface_pon: (u8, u8, u8),
+        vlan: u16,
+        model: &str,
+        sn: &str,
+        pppoe: Option<PppoeInfo>,
+    ) -> Onu {
         Onu {
             id,
             interface_pon,
             vlan,
             model: Box::from(model),
             sn: Box::from(sn),
+            pppoe,
         }
     }
 
-    pub fn configure_script(&self, pppoe: Option<&PppoeInfo>) -> Vec<Command> {
+    pub fn configure_script(&self) -> Vec<Command> {
         // Cria um vetor vazio onde serão armazenados os comandos.
         let mut script: Vec<Command> = Vec::new();
 
@@ -92,7 +101,7 @@ impl Onu {
         let service_gemport = enter_pon_mng.clone().service(1).gemport(1).vlan(self.vlan);
         script.push(service_gemport);
 
-        if let Some(p) = pppoe {
+        if let Some(p) = &self.pppoe {
             let user = &p.user;
             let pass = &p.password;
             // Cria a WAN em pppoe

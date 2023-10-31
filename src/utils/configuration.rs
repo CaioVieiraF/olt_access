@@ -3,7 +3,6 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{BufRead, BufReader, Read, Write},
-    ops::RangeToInclusive,
     rc::Rc,
 };
 
@@ -113,10 +112,9 @@ impl Config {
         }
     }
 
-    pub fn get_onu_script(&self) -> Vec<Command> {
+    pub fn extract_onu(&self, vlan: u16) -> Vec<Onu> {
         let mut onu_list: HashMap<Interface, HashMap<u8, OnuTypeSn>> = HashMap::new();
-        let mut script: Vec<Command> = Vec::new();
-        let vlan = 1000;
+        let mut onu_instances: Vec<Onu> = Vec::new();
 
         let mut pon_buffer: Option<(Interface, u8)> = None;
         let mut interface_buffer: Option<Interface> = None;
@@ -180,12 +178,18 @@ impl Config {
 
         for (key, value) in onu_list {
             for (id, onu_info) in value {
-                let new_onu = Onu::new(id, key.interface(), vlan, &onu_info.r#type, &onu_info.sn);
-                let config = new_onu.configure_script(onu_info.pppoe.as_ref());
-                script.extend(config);
+                let new_onu = Onu::new(
+                    id,
+                    key.interface(),
+                    vlan,
+                    &onu_info.r#type,
+                    &onu_info.sn,
+                    onu_info.pppoe,
+                );
+                onu_instances.push(new_onu);
             }
         }
 
-        script
+        onu_instances
     }
 }
