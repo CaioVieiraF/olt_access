@@ -1,39 +1,84 @@
+use std::rc::Rc;
+
 use crate::Command;
 
-use super::{
-    command::{
-        interface::InterfaceOnu,
-        omci::{IngressType, Protocol},
-        CmdArg0, CommandBuilder,
-    },
-    configuration::PppoeInfo,
+use super::command::{
+    interface::InterfaceOnu,
+    omci::{IngressType, Protocol, WanMode},
+    CmdArg0, CommandBuilder,
 };
 
-#[derive(Debug)]
-pub enum OnuModel {
-    F670LV9,
-}
-
-pub struct Onu {
+pub struct Onu<'a> {
     id: u8,
     interface_pon: (u8, u8, u8),
-    vlan: u16,
     model: Box<str>,
     sn: Box<str>,
+    services: Rc<[OnuService<'a>]>,
 }
 
-impl Onu {
-    pub fn new(id: u8, interface_pon: (u8, u8, u8), vlan: u16, model: &str, sn: &str) -> Onu {
+#[derive(Clone)]
+pub struct OnuService<'a> {
+    pub vlan: Vlan,
+    pub upload: Option<&'a str>,
+    pub download: Option<&'a str>,
+}
+
+#[derive(Clone)]
+pub struct Vlan {
+    pub id: u16,
+    pub service: Option<WanMode>,
+}
+
+impl Vlan {
+    pub fn new(id: u16) -> Vlan {
+        Vlan { id, service: None }
+    }
+
+    pub fn pppoe(&mut self, username: impl Into<String>, password: impl Into<String>) {
+        self.service = Some(WanMode::PPPoE {
+            username: username.into(),
+            password: password.into(),
+        });
+    }
+
+    pub fn dhcp(&mut self) {
+        self.service = Some(WanMode::Dhcp);
+    }
+}
+
+impl OnuService<'_> {
+    pub fn new<'a>(vlan: Vlan) -> OnuService<'a> {
+        OnuService {
+            vlan,
+            upload: None,
+            download: None,
+        }
+    }
+}
+
+impl<'a> Onu<'a> {
+    pub fn new(
+        id: u8,
+        interface_pon: (u8, u8, u8),
+        model: &str,
+        sn: &str,
+        services: Vec<OnuService<'a>>,
+    ) -> Onu<'a> {
         Onu {
             id,
             interface_pon,
-            vlan,
+            services: Rc::from(services),
             model: Box::from(model),
             sn: Box::from(sn),
         }
     }
 
-    pub fn configure_script(&self, pppoe: Option<&PppoeInfo>) -> Vec<Command> {
+    pub fn configure_script(&self) -> Vec<Command> {
+        // Definição das variáveis
+        let tcont = 1;
+        let speed_profile = "1G";
+        let gemport = 1;
+
         // Cria um vetor vazio onde serão armazenados os comandos.
         let mut script: Vec<Command> = Vec::new();
 
@@ -61,60 +106,80 @@ impl Onu {
         script.push(enter_onu_interface.command.clone().into());
 
         // Configura o tcont com um perfil de velocidade padrão.
-        let tcont_profile = enter_onu_interface.clone().tcont(1).profile("1G");
+        let tcont_profile = enter_onu_interface
+            .clone()
+            .tcont(tcont)
+            .profile(speed_profile);
         script.push(tcont_profile);
 
         // Cria o gemport
-        let gemport_tcont = enter_onu_interface.gemport(1).tcont(1).run();
+        let gemport_tcont = enter_onu_interface.gemport(gemport).tcont(tcont).run();
         script.push(gemport_tcont);
+        script.push(Command::from("vport-mode manual"));
+        script.push(Command::from("vport 1 map-type vlan"));
+
+        for service in self.services.iter().enumerate() {
+            script.push(Command::from(format!(
+                "vport-map 1 {} vlan {}",
+                service.0, service.1.vlan.id,
+            )));
+        }
         script.push(Command::exit());
 
-        // Entra na interface vport para configurar o serviço
-        let enter_vport = Command::builder()
-            .interface()
-            .vport(self.interface_pon, self.id, 1);
-        script.push(enter_vport.command.clone().into());
+        // Cria os serviços
+        for (index, service) in self.services.iter().enumerate() {
+            let vport_id = index as u8 + 1;
+            // Entra na interface vport para configurar o serviço
+            let enter_vport =
+                Command::builder()
+                    .interface()
+                    .vport(self.interface_pon, self.id, vport_id);
+            script.push(enter_vport.command.clone().into());
 
-        // Cria o serviço com a VLAN
-        let servive_port = enter_vport
-            .service_port(1)
-            .user_vlan(self.vlan)
-            .vlan(self.vlan)
-            .run();
-        script.push(servive_port);
+            let servive_port = enter_vport
+                .service_port(vport_id)
+                .user_vlan(service.vlan.id)
+                .vlan(service.vlan.id)
+                .run();
+            script.push(servive_port);
+        }
         script.push(Command::exit());
 
         // Entra no modo de configuração OMCI
         let enter_pon_mng = Command::builder().pon_onu_mng(self.interface_pon, self.id);
         script.push(enter_pon_mng.command.clone().into());
 
-        // Adiciona a VLAN
-        let service_gemport = enter_pon_mng.clone().service(1).gemport(1).vlan(self.vlan);
-        script.push(service_gemport);
-
-        if let Some(p) = pppoe {
-            let user = &p.user;
-            let pass = &p.password;
-            // Cria a WAN em pppoe
-            let wan_ip = enter_pon_mng
+        for (index, service) in self.services.iter().enumerate() {
+            let service_id = index as u8 + 1;
+            // Adiciona a VLAN
+            let service_gemport = enter_pon_mng
                 .clone()
-                .wan_ip()
-                .mode()
-                .pppoe(user, pass)
-                .vlan_profile(self.vlan)
-                .host(1);
-            script.push(wan_ip);
+                .service(service_id)
+                .gemport(gemport)
+                .vlan(service.vlan.id);
+            script.push(service_gemport);
 
-            // Cria a regra para o acesso web
-            let security_mgmt = enter_pon_mng
-                .security_mgmt(1)
-                .state(true)
-                .mode(true)
-                .ingress_type(IngressType::Iphost(1))
-                .protocol(Protocol::Web);
-            script.push(security_mgmt);
+            if let Some(p) = service.vlan.service.clone() {
+                // Cria a WAN em pppoe
+                let wan_ip = enter_pon_mng
+                    .clone()
+                    .wan_ip()
+                    .mode(p)
+                    .vlan_profile(service.vlan.id)
+                    .host(service_id);
+                script.push(wan_ip);
+
+                // Cria a regra para o acesso web
+                let security_mgmt = enter_pon_mng
+                    .clone()
+                    .security_mgmt(service_id)
+                    .state(true)
+                    .mode(true)
+                    .ingress_type(IngressType::Iphost(1))
+                    .protocol(Protocol::Web);
+                script.push(security_mgmt);
+            }
         }
-
         script.push(Command::end());
         script
     }

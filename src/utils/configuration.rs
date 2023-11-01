@@ -3,14 +3,16 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{BufRead, BufReader, Read, Write},
-    ops::RangeToInclusive,
     rc::Rc,
 };
 
 use crate::Command;
 use serde::Deserialize;
 
-use super::{olt::Interface, onu::Onu};
+use super::{
+    olt::Interface,
+    onu::{Onu, OnuService, Vlan},
+};
 
 #[derive(Deserialize)]
 pub struct GeneralParam {
@@ -19,7 +21,6 @@ pub struct GeneralParam {
 }
 
 pub struct Config {
-    command_count: u32,
     // pub commands: Vec<String>,
     pub commands: Box<[Rc<str>]>,
 }
@@ -69,36 +70,24 @@ impl From<File> for Config {
             .filter(|s| s != "!")
             .map(Rc::from)
             .collect();
-        let command_count = commands.len() as u32;
 
-        Config {
-            command_count,
-            commands,
-        }
+        Config { commands }
     }
 }
 
 impl From<Vec<Command>> for Config {
     fn from(value: Vec<Command>) -> Self {
         let commands = value.iter().map(|c| c.raw()).collect();
-        Config {
-            command_count: value.len() as u32,
-            commands,
-        }
+        Config { commands }
     }
-}
-
-#[derive(Debug)]
-pub struct PppoeInfo {
-    pub user: String,
-    pub password: String,
 }
 
 struct OnuTypeSn {
     r#type: String,
     sn: String,
-    pppoe: Option<PppoeInfo>,
+    service: Vlan,
 }
+
 impl Config {
     pub fn to_file(&self, mut file: File) -> Result<File> {
         for i in self.commands.iter() {
@@ -113,10 +102,9 @@ impl Config {
         }
     }
 
-    pub fn get_onu_script(&self) -> Vec<Command> {
+    pub fn extract_onu(&self, vlan_id: u16) -> Vec<Onu> {
         let mut onu_list: HashMap<Interface, HashMap<u8, OnuTypeSn>> = HashMap::new();
-        let mut script: Vec<Command> = Vec::new();
-        let vlan = 1000;
+        let mut onu_instances: Vec<Onu> = Vec::new();
 
         let mut pon_buffer: Option<(Interface, u8)> = None;
         let mut interface_buffer: Option<Interface> = None;
@@ -146,7 +134,7 @@ impl Config {
                 let onu = OnuTypeSn {
                     r#type: cmd_args.get(3).unwrap().to_string(),
                     sn: cmd_args.get(5).unwrap().to_string(),
-                    pppoe: None,
+                    service: Vlan::new(vlan_id),
                 };
 
                 if let Some(ref i) = interface_buffer {
@@ -163,15 +151,14 @@ impl Config {
                 }
             } else if cmd_args.len() >= 10 && cmd_args[0] == "wan-ip" {
                 if let Some(ref b) = pon_buffer {
-                    let new_info = PppoeInfo {
-                        user: cmd_args[5].clone(),
-                        password: cmd_args[7].clone(),
-                    };
-
                     let id = b.1;
                     if let Some(o) = onu_list.get_mut(&b.0) {
                         if let Some(k) = o.get_mut(&id) {
-                            k.pppoe = Some(new_info);
+                            if cmd_args[3] == "pppoe" {
+                                k.service.pppoe(cmd_args[5].clone(), cmd_args[7].clone());
+                            } else if cmd_args[3] == "dhcp" {
+                                k.service.dhcp();
+                            }
                         }
                     }
                 }
@@ -180,12 +167,18 @@ impl Config {
 
         for (key, value) in onu_list {
             for (id, onu_info) in value {
-                let new_onu = Onu::new(id, key.interface(), vlan, &onu_info.r#type, &onu_info.sn);
-                let config = new_onu.configure_script(onu_info.pppoe.as_ref());
-                script.extend(config);
+                let services = vec![OnuService::new(onu_info.service)];
+                let new_onu = Onu::new(
+                    id,
+                    key.interface(),
+                    &onu_info.r#type,
+                    &onu_info.sn,
+                    services,
+                );
+                onu_instances.push(new_onu);
             }
         }
 
-        script
+        onu_instances
     }
 }
