@@ -6,9 +6,9 @@ use std::{fs::File, marker::PhantomData, rc::Rc};
 use crate::prelude::Result;
 
 use super::{
-    configuration::{ConfigInfo, GeneralParam, PppoeInfo},
+    configuration::{ConfigInfo, GeneralParam},
     olt::Interface,
-    onu::Onu,
+    onu::{Onu, OnuService, Vlan},
 };
 
 #[derive(Clone)]
@@ -98,19 +98,20 @@ impl Command {
 
         // Itera por cada configuração para criar um script de configuração para cada ONU.
         for (i, config_info) in configurations.iter().enumerate() {
-            let pppoe_info = PppoeInfo {
-                user: config_info.pppoe_user.clone(),
-                password: config_info.pppoe_password.clone(),
-            };
+            let mut vlan = Vlan::new(params.vlan);
+            vlan.pppoe(
+                config_info.pppoe_user.clone(),
+                config_info.pppoe_password.clone(),
+            );
 
+            let services = vec![OnuService::new(vlan)];
             // Cria a ONU
             let onu = Onu::new(
                 (i + 1) as u8,
                 params.interface.interface(),
-                params.vlan,
                 config_info.model.as_str(),
                 config_info.sn.as_str(),
-                Some(pppoe_info),
+                services,
             );
             // Gera o script
             let configure_script = onu.configure_script();

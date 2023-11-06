@@ -17,29 +17,23 @@ fn main() -> Result<()> {
     // Adiciona as configurações das ONU no script
     //Command::onu_script_from_file(general_info, equipment_info, &mut script)?;
 
-    // Finaliza e grava as configurações
-    //script.push(Command::end());
-    //script.push(Command::write());
-
-    // Cria um objeto de configuração com os comandos criados anteriormente.
-
-    let startrun = File::open("startrun.dat").unwrap_or(File::open("script.txt")?);
+    // Cria um objeto de configuração a partir de um backup de uma OLT.
+    let startrun = File::open("startrun.dat")?;
     let config = Config::from(startrun);
-    //config.show_config();
 
     let onu_script = config.extract_onu(1000);
     for onu in onu_script {
         let cmd = onu.configure_script();
         script.extend(cmd);
     }
+
+    // Finaliza e grava as configurações
     script.push(Command::write());
     let onu_script = Config::from(script);
-    //onu_script.show_config();
 
     // Gera um arquivo para colocar o script.
     let script_file = File::create("output.txt")?;
     // Escreve o script no arquivo.
-    //config.to_file(script_file)?;
     onu_script.to_file(script_file)?;
 
     Ok(())

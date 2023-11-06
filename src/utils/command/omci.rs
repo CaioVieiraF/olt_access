@@ -1,12 +1,12 @@
-use std::{fmt::format, marker::PhantomData};
+use std::marker::PhantomData;
 
 use crate::utils::command::{CmdArg0, CmdArg1, CmdArg2, CmdArg3, CmdArg4, Command, CommandBuilder};
 
 use super::Omci;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum WanMode {
-    PPPoE,
+    PPPoE { username: String, password: String },
     Dhcp,
 }
 
@@ -67,9 +67,15 @@ impl CommandBuilder<Omci, CmdArg1> {
     }
 
     // wan-ip
-    pub fn mode(self) -> CommandBuilder<Omci, CmdArg2> {
+    pub fn mode(self, mode: WanMode) -> CommandBuilder<Omci, CmdArg3> {
+        let cmd = match mode {
+            WanMode::Dhcp => "mode dhcp".to_string(),
+            WanMode::PPPoE { username, password } => {
+                format!("mode pppoe username {username} password {password}")
+            }
+        };
         CommandBuilder {
-            command: format!("{} mode", self.command).into(),
+            command: format!("{} {cmd}", self.command).into(),
             command_level: PhantomData,
             arg: PhantomData,
         }
@@ -98,23 +104,6 @@ impl CommandBuilder<Omci, CmdArg2> {
     }
 
     //wan-ip
-    pub fn pppoe(
-        self,
-        username: impl Into<String>,
-        password: impl Into<String>,
-    ) -> CommandBuilder<Omci, CmdArg3> {
-        CommandBuilder {
-            command: format!(
-                "{} pppoe username {} password {}",
-                self.command,
-                username.into(),
-                password.into()
-            )
-            .into(),
-            command_level: PhantomData,
-            arg: PhantomData,
-        }
-    }
 
     //security-mgmt
     pub fn mode(self, value: bool) -> CommandBuilder<Omci, CmdArg3> {
