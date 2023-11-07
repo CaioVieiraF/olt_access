@@ -70,7 +70,6 @@ impl<'a> Onu<'a> {
             services: Rc::from(services),
             model: Box::from(model),
             sn: Box::from(sn),
-            pppoe,
         }
     }
 

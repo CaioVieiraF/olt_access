@@ -86,15 +86,12 @@ impl Command {
 
     // Abstração que gera um script de configuração de ONU
     // baseado nas informações de um arquivo
-    pub fn onu_script_from_file(
-        general_info: File,
-        equipment_info: File,
-        script: &mut Vec<Command>,
-    ) -> Result<()> {
+    pub fn onu_script_from_file(general_info: File, equipment_info: File) -> Result<Vec<Command>> {
         // Carrega os arquivos em estruturas conhecidas, caso esteja
         // no formato certo
         let params = GeneralParam::try_from(general_info)?;
         let configurations = ConfigInfo::from_file(equipment_info)?;
+        let mut configure_script = Vec::new();
 
         // Itera por cada configuração para criar um script de configuração para cada ONU.
         for (i, config_info) in configurations.iter().enumerate() {
@@ -114,12 +111,11 @@ impl Command {
                 services,
             );
             // Gera o script
-            let configure_script = onu.configure_script();
             // Adiciona a configuração da ONU no script existente
-            script.extend(configure_script);
+            configure_script.extend(onu.configure_script());
         }
 
-        Ok(())
+        Ok(configure_script)
     }
 }
 
