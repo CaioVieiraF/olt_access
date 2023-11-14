@@ -1,7 +1,5 @@
 /target
 parameters.toml
 configure_info.csv
-output.txt
-titan.txt
-onu.txt
-startrun.dat
+*.txt
+*.dat

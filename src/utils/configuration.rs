@@ -1,28 +1,108 @@
-use crate::{prelude::Error, Result};
+use crate::Command;
+use crate::Result;
+use regex::Regex;
+use serde::Deserialize;
+use std::fmt::Display;
+use std::ops::AddAssign;
+use std::sync::Arc;
 use std::{
     collections::HashMap,
     fs::File,
-    io::{BufRead, BufReader, Read, Write},
-    rc::Rc,
+    io::{BufRead, BufReader, Write},
+    str::FromStr,
 };
 
-use crate::Command;
-use serde::Deserialize;
-
+use super::olt::InterfaceLevel;
 use super::{
     olt::Interface,
     onu::{Onu, OnuService, Vlan},
 };
 
-#[derive(Deserialize)]
-pub struct GeneralParam {
-    pub vlan: u16,
-    pub interface: Interface,
+#[derive(Clone, Debug)]
+pub struct NestedCommand {
+    pub command: Command,
+    pub nested: Option<Vec<NestedCommand>>,
 }
 
-pub struct Config {
-    // pub commands: Vec<String>,
-    pub commands: Box<[Rc<str>]>,
+impl Iterator for NestedCommand {
+    type Item = NestedCommand;
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(vector) = &self.nested {
+            vector.iter().next().cloned()
+        } else {
+            None
+        }
+    }
+}
+
+impl NestedCommand {
+    pub fn nest(&mut self, child: NestedCommand) {
+        if let Some(n) = self.nested.as_mut() {
+            n.push(child);
+        } else {
+            self.nested = Some(vec![child]);
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.command.as_str()
+    }
+
+    pub fn raw(&self) -> String {
+        let mut result = format!("{}\n", self.as_str());
+
+        if let Some(n) = &self.nested {
+            for cmd in n {
+                result += "  ";
+                result += &cmd.raw();
+            }
+
+            result += "$\n";
+        }
+
+        result
+    }
+}
+
+#[derive(Eq, Hash, PartialEq, Clone, Debug)]
+pub struct ConfigField(Arc<str>);
+
+impl ConfigField {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+impl Display for ConfigField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Default for ConfigField {
+    fn default() -> Self {
+        ConfigField("raw".into())
+    }
+}
+
+impl From<&str> for ConfigField {
+    fn from(value: &str) -> Self {
+        ConfigField(Arc::from(value))
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Config(pub HashMap<ConfigField, Vec<NestedCommand>>);
+
+impl AddAssign for Config {
+    fn add_assign(&mut self, rhs: Self) {
+        for (key, value) in rhs.0 {
+            if let Some(i) = self.0.get_mut(&key) {
+                i.extend(value);
+            } else {
+                self.0.insert(key, value);
+            }
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -46,136 +126,139 @@ impl ConfigInfo {
     }
 }
 
-impl TryFrom<File> for GeneralParam {
-    type Error = Error;
-    fn try_from(value: File) -> Result<Self> {
-        let mut file = String::new();
-        let mut reader = BufReader::new(value);
-        reader.read_to_string(&mut file)?;
-
-        let toml_config: GeneralParam = toml::from_str(&file)?;
-
-        Ok(toml_config)
+impl From<Command> for NestedCommand {
+    fn from(value: Command) -> Self {
+        NestedCommand {
+            command: value,
+            nested: None,
+        }
     }
 }
 
 impl From<File> for Config {
     fn from(value: File) -> Self {
         let content = BufReader::new(value);
-        // file.read_to_string(&mut content)?;
-        let commands: Box<[Rc<str>]> = content
-            .lines()
-            .map(|a| a.unwrap())
-            .map(|s| s.trim().to_string())
-            .filter(|s| s != "!")
-            .map(Rc::from)
-            .collect();
+        let mut result: HashMap<ConfigField, Vec<NestedCommand>> = HashMap::new();
+        let field_pattern = Regex::new(r"!<(?P<name>.*)>").unwrap();
+        let nest_pattern = Regex::new(r"^ {2,}(?P<command>.*)").unwrap();
 
-        Config { commands }
+        let mut buffer = None;
+        for command in content.lines().flatten() {
+            info!("{buffer:?}");
+            info!("{command}");
+            if command.is_empty() {
+                continue;
+            }
+            if let Some(s) = field_pattern.captures(&command) {
+                if s["name"].starts_with('/') {
+                    buffer = None;
+                } else {
+                    let field = ConfigField::from(&s["name"]);
+                    buffer = Some(field.clone());
+                    result.insert(field, Vec::new());
+                }
+                continue;
+            }
+
+            if command.contains('$') {
+                continue;
+            }
+
+            let current_command = result.get_mut(&buffer.clone().unwrap()).unwrap();
+            let new_command = NestedCommand::from(Command::from(command.as_str().trim()));
+
+            if nest_pattern.captures(&command).is_some() {
+                let level: Vec<&str> = command.split("  ").collect();
+                let level = level.len() - 2;
+                let mut current_command = current_command.last_mut().unwrap();
+                for _ in 0..level {
+                    if let Some(ref mut n) = current_command.nested {
+                        current_command = n.last_mut().unwrap();
+                    }
+                }
+                current_command.nest(new_command);
+            } else {
+                current_command.push(new_command);
+            }
+        }
+
+        Config(result)
     }
 }
 
 impl From<Vec<Command>> for Config {
     fn from(value: Vec<Command>) -> Self {
-        let commands = value.iter().map(|c| c.raw()).collect();
-        Config { commands }
+        let commands: Vec<NestedCommand> = value
+            .iter()
+            .map(|c| NestedCommand::from(c.clone()))
+            .collect();
+        let mut result = HashMap::new();
+        result.insert(ConfigField::default(), commands);
+        Config(result)
     }
-}
-
-struct OnuTypeSn {
-    r#type: String,
-    sn: String,
-    service: Vlan,
 }
 
 impl Config {
     pub fn to_file(&self, mut file: File) -> Result<File> {
-        for i in self.commands.iter() {
-            writeln!(file, "{}", i)?;
+        let mut script = String::new();
+        for (key, i) in self.0.iter() {
+            let field = (format!("!<{}>", key.0), format!("!</{}>", key.0));
+            script.push_str(&field.0);
+            script.push('\n');
+            for command in i {
+                script.push_str(&command.raw());
+            }
+            script.push_str(&field.1);
+            script.push('\n');
         }
+
+        writeln!(file, "{}", script)?;
         Ok(file)
     }
 
-    pub fn show_config(&self) {
-        for line in self.commands.iter() {
-            println!("{line}");
-        }
-    }
-
-    pub fn extract_onu(&self, vlan_id: u16) -> Vec<Onu> {
-        let mut onu_list: HashMap<Interface, HashMap<u8, OnuTypeSn>> = HashMap::new();
+    pub fn extract_onu(&self) -> Vec<Onu> {
         let mut onu_instances: Vec<Onu> = Vec::new();
+        let creation_pattern = Regex::new(
+            r"^onu (?P<id>[1-9]|[1-9][0-9]|1[0-2][0-9]) type (?P<type>.*) sn (?P<sn>.*)$",
+        )
+        .unwrap();
 
-        let mut pon_buffer: Option<(Interface, u8)> = None;
-        let mut interface_buffer: Option<Interface> = None;
-        for c in self.commands.iter() {
-            if !c.contains(' ') {
-                continue;
-            }
+        let field = self.0.get(&ConfigField::from("xpon")).unwrap();
+        //.unwrap_or(self.0.get(&ConfigField::default()).unwrap());
 
-            let cmd_args: Vec<String> = c.split(' ').map(String::from).collect();
-            if let Ok(i) = Interface::try_from(c.to_string()) {
-                if c.contains("olt") {
-                    interface_buffer = Some(i);
-                } else if c.contains("pon-onu-mng") {
-                    println!("{c}");
-                    let id: Vec<_> = cmd_args.last().unwrap().split(':').collect();
-                    let id = id.last().unwrap().parse().unwrap();
-
-                    pon_buffer = Some((i, id));
-                }
-            } else if cmd_args.len() == 6
-                && cmd_args.first().unwrap() == "onu"
-                && cmd_args.get(2).unwrap() == "type"
-                && cmd_args.get(4).unwrap() == "sn"
-            {
-                let id: u8 = cmd_args.get(1).unwrap().parse().unwrap();
-
-                let onu = OnuTypeSn {
-                    r#type: cmd_args.get(3).unwrap().to_string(),
-                    sn: cmd_args.get(5).unwrap().to_string(),
-                    service: Vlan::new(vlan_id),
-                };
-
-                if let Some(ref i) = interface_buffer {
-                    match onu_list.get_mut(i) {
-                        Some(h) => {
-                            h.insert(id, onu);
-                        }
-                        None => {
-                            let mut new_map = HashMap::new();
-                            new_map.insert(id, onu);
-                            onu_list.insert(i.clone(), new_map);
-                        }
-                    }
-                }
-            } else if cmd_args.len() >= 10 && cmd_args[0] == "wan-ip" {
-                if let Some(ref b) = pon_buffer {
-                    let id = b.1;
-                    if let Some(o) = onu_list.get_mut(&b.0) {
-                        if let Some(k) = o.get_mut(&id) {
-                            if cmd_args[3] == "pppoe" {
-                                k.service.pppoe(cmd_args[5].clone(), cmd_args[7].clone());
-                            } else if cmd_args[3] == "dhcp" {
-                                k.service.dhcp();
+        for c in field {
+            if let Ok(i) = Interface::from_str(c.as_str()) {
+                if i.level == InterfaceLevel::GponOlt {
+                    if let Some(inter) = &c.nested {
+                        for onu in inter {
+                            if let Some(o) = creation_pattern.captures(onu.as_str()) {
+                                let id = o["id"].parse::<u8>().unwrap();
+                                let interface = i.with_id(id);
+                                let new_onu =
+                                    Onu::new(interface, &o["type"], &o["sn"], Vec::default());
+                                onu_instances.push(new_onu);
                             }
                         }
                     }
-                }
-            }
-        }
+                } else if i.level == InterfaceLevel::PonOnuMng {
+                    info!("{}", c.command);
+                    let mut services = Vec::new();
+                    let mut current_onu = onu_instances
+                        .iter_mut()
+                        .filter(|o| o.interface() == &i)
+                        .collect::<Vec<&mut Onu>>();
+                    let current_onu = current_onu.first_mut().unwrap();
+                    if let Some(value) = &c.nested {
+                        for infos in value {
+                            let vlan = Vlan::try_from(&infos.command);
+                            if let Ok(v) = vlan {
+                                services.push(OnuService::new(v));
+                            }
+                        }
+                    }
 
-        for (key, value) in onu_list {
-            for (id, onu_info) in value {
-                let services = vec![OnuService::new(onu_info.service)];
-                let new_onu = Onu::new(
-                    id,
-                    key.interface(),
-                    &onu_info.r#type,
-                    &onu_info.sn,
-                    services,
-                );
-                onu_instances.push(new_onu);
+                    current_onu.set_service(services.into());
+                }
             }
         }
 

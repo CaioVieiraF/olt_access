@@ -12,10 +12,10 @@ pub struct InterfaceOnu;
 pub struct InterfaceVport;
 
 impl CommandBuilder<Interface, CmdArg0> {
-    pub fn gpon_olt(self, position: (u8, u8, u8)) -> CommandBuilder<InterfaceOlt, CmdArg0> {
+    pub fn gpon_olt(self, interface: &Interface) -> CommandBuilder<InterfaceOlt, CmdArg0> {
         let interface = format!(
-            "{} gpon_olt-{}/{}/{}",
-            self.command, position.0, position.1, position.2
+            "{} gpon_olt-1/{}/{}",
+            self.command, interface.slot, interface.port
         );
 
         CommandBuilder {
@@ -25,10 +25,13 @@ impl CommandBuilder<Interface, CmdArg0> {
         }
     }
 
-    pub fn gpon_onu(self, position: (u8, u8, u8), id: u8) -> CommandBuilder<InterfaceOnu, CmdArg0> {
+    pub fn gpon_onu(self, interface: &Interface) -> CommandBuilder<InterfaceOnu, CmdArg0> {
         let interface = format!(
-            "{} gpon_onu-{}/{}/{}:{id}",
-            self.command, position.0, position.1, position.2
+            "{} gpon_onu-1/{}/{}:{}",
+            self.command,
+            interface.slot,
+            interface.port,
+            interface.id.unwrap()
         );
 
         CommandBuilder {
@@ -40,14 +43,16 @@ impl CommandBuilder<Interface, CmdArg0> {
 
     pub fn vport(
         self,
-        position: (u8, u8, u8),
-        id: u8,
+        interface: &Interface,
         service: u8,
     ) -> CommandBuilder<InterfaceVport, CmdArg0> {
         CommandBuilder {
             command: format!(
-                "{} vport-{}/{}/{}.{id}:{service}",
-                self.command, position.0, position.1, position.2
+                "{} vport-1/{}/{}.{}:{service}",
+                self.command,
+                interface.slot,
+                interface.port,
+                interface.id.unwrap()
             )
             .into(),
             command_level: PhantomData,
@@ -91,7 +96,7 @@ impl CommandBuilder<InterfaceOlt, CmdArg2> {
 
 impl CommandBuilder<InterfaceOlt, CmdArg3> {
     pub fn run(self) -> Command {
-        Command { raw: self.command }
+        self.command
     }
 
     pub fn vport_mode(self) -> CommandBuilder<InterfaceOlt, CmdArg4> {
@@ -106,16 +111,12 @@ impl CommandBuilder<InterfaceOlt, CmdArg3> {
 impl CommandBuilder<InterfaceOlt, CmdArg4> {
     pub fn gemport(self) -> Command {
         let command = format!("{} gemport", self.command);
-        Command {
-            raw: command.into(),
-        }
+        self.command
     }
 
     pub fn manual(self) -> Command {
         let command = format!("{} manual", self.command);
-        Command {
-            raw: command.into(),
-        }
+        self.command
     }
 }
 
@@ -139,7 +140,7 @@ impl CommandBuilder<InterfaceOnu, CmdArg0> {
 
 impl CommandBuilder<InterfaceOnu, CmdArg1> {
     pub fn profile(self, prof: impl Into<String>) -> Command {
-        format!("{} profile {}", self.command, prof.into()).into()
+        Command(format!("{} profile {}", self.command, prof.into()).into())
     }
 
     pub fn tcont(self, number: u8) -> CommandBuilder<InterfaceOnu, CmdArg2> {
@@ -153,7 +154,7 @@ impl CommandBuilder<InterfaceOnu, CmdArg1> {
 
 impl CommandBuilder<InterfaceOnu, CmdArg2> {
     pub fn run(self) -> Command {
-        self.command.into()
+        self.command
     }
 }
 
@@ -189,7 +190,7 @@ impl CommandBuilder<InterfaceVport, CmdArg2> {
 
 impl CommandBuilder<InterfaceVport, CmdArg3> {
     pub fn run(self) -> Command {
-        self.command.into()
+        self.command
     }
 
     //TODO missing fields

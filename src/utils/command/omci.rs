@@ -96,11 +96,11 @@ impl CommandBuilder<Omci, CmdArg1> {
 impl CommandBuilder<Omci, CmdArg2> {
     //service gemport
     pub fn run(self) -> Command {
-        self.command.into()
+        self.command
     }
 
     pub fn vlan(self, vlan: u16) -> Command {
-        format!("{} vlan {vlan}", self.command).into()
+        Command(format!("{} vlan {vlan}", self.command).into())
     }
 
     //wan-ip
@@ -146,11 +146,11 @@ impl CommandBuilder<Omci, CmdArg3> {
 impl CommandBuilder<Omci, CmdArg4> {
     //wan-ip
     pub fn host(self, number: u8) -> Command {
-        format!("{} host {number}", self.command).into()
+        Command(format!("{} host {number}", self.command).into())
     }
 
     //security-mgmt
     pub fn protocol(self, prot: Protocol) -> Command {
-        format!("{} protocol {:?}", self.command, prot).into()
+        Command(format!("{} protocol {:?}", self.command, prot).into())
     }
 }

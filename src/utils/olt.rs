@@ -1,78 +1,102 @@
 use crate::prelude::{Error, Result};
 
-use super::command::Command;
-use serde::{Deserialize, Serialize};
-use std::{
-    io::{Read, Write},
-    net::{Ipv4Addr, TcpStream},
-};
+use super::{command::Command, configuration::Config, onu::Onu};
+use clap::Parser;
+use regex::Regex;
+use std::{rc::Rc, str::FromStr, sync::Arc};
 
-use ssh2::{Channel, Session};
-
-#[derive(Debug, Deserialize, Serialize, Clone, Eq, Hash, PartialEq)]
+#[derive(Parser, Debug, Clone, Eq, Hash, PartialEq, Default)]
 pub struct Interface {
-    pub shelf: u8,
+    pub level: InterfaceLevel,
     pub slot: u8,
     pub port: u8,
+    pub id: Option<u8>,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug, Hash)]
+pub enum InterfaceLevel {
+    GponOlt,
+    GponOnu,
+    PonOnuMng,
+    Other(Arc<str>),
 }
 
 pub struct Olt {
-    session: Session,
     model: OltModel,
-    queue: Vec<Command>,
+    interfaces: Rc<[Interface]>,
+    onu: Vec<Onu>,
+    configuration: Config,
 }
 
-#[derive(Default)]
-pub struct OltBuilder<S, M> {
-    ip: S,
-    model: M,
-    port: Option<u16>,
+impl From<OltModel> for Olt {
+    fn from(value: OltModel) -> Self {
+        Olt {
+            model: value,
+            interfaces: Rc::new([Interface::default()]),
+            onu: Default::default(),
+            configuration: Default::default(),
+        }
+    }
+}
+
+impl Default for InterfaceLevel {
+    fn default() -> Self {
+        InterfaceLevel::Other("generic".into())
+    }
 }
 
 impl Interface {
-    pub fn new(shelf: u8, slot: u8, port: u8) -> Interface {
-        Interface { shelf, slot, port }
-    }
-
-    pub fn interface(&self) -> (u8, u8, u8) {
-        (self.shelf, self.slot, self.port)
+    pub fn with_id(&self, id: u8) -> Interface {
+        Interface {
+            id: Some(id),
+            ..self.clone()
+        }
     }
 }
 
-impl TryFrom<String> for Interface {
-    type Error = Error;
-    fn try_from(value: String) -> Result<Self> {
-        let cmd_param: Vec<&str> = value.split(' ').collect();
-        let interface = cmd_param
-            .get(1)
-            .ok_or(Error::Generic("Parse error".into()))?;
-        let interface: Vec<_> = interface.split('_').collect();
-        let interface = interface
-            .get(1)
-            .ok_or(Error::Generic("Parse error".into()))?;
-        let interface: Vec<&str> = interface.split('/').collect();
-        let shelf = match interface.first().unwrap().parse() {
-            Ok(s) => Ok(s),
-            Err(_) => {
-                let s: Vec<&str> = interface.first().unwrap().split('-').collect();
-                s.last().unwrap().parse()
-            }
-        };
-        let interface = Interface {
-            shelf: shelf?,
-            slot: interface
-                .get(1)
-                .ok_or(Error::Generic("Parse Error.".into()))?
-                .parse()?,
-            port: interface
-                .get(2)
-                .ok_or(Error::Generic("Parse Error.".into()))?
-                .split(':')
-                .collect::<Vec<_>>()[0]
-                .parse()?,
-        };
+impl From<&str> for InterfaceLevel {
+    fn from(value: &str) -> Self {
+        match value {
+            "gpon-olt" | "gpon_olt" => InterfaceLevel::GponOlt,
+            "gpon-onu" | "gpon_onu" => InterfaceLevel::GponOnu,
+            "pon-onu-mng" => InterfaceLevel::PonOnuMng,
+            _ => InterfaceLevel::Other(value.into()),
+        }
+    }
+}
 
-        Ok(interface)
+impl FromStr for InterfaceLevel {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        let result = InterfaceLevel::from(s);
+
+        Ok(result)
+    }
+}
+
+impl FromStr for Interface {
+    type Err = Error;
+    fn from_str(value: &str) -> Result<Self> {
+        let pattern = Regex::new(
+            r"(.* )?(?P<level>.*)[_\-]1\/(?P<card>[0-9]|1[0-9])\/(?P<port>[1-9]|1[0-6])(:(?P<id>[1-9]|[1-9][0-9]|1[0-2][09]))?$",
+        ).unwrap();
+
+        let interface = pattern
+            .captures(value)
+            .ok_or(Error::Generic("Parse interface".to_string()))?;
+
+        let id = interface
+            .name("id")
+            .map(|id| id.as_str().parse::<u8>().unwrap());
+        let slot = interface["card"].parse().unwrap();
+        let port = interface["port"].parse().unwrap();
+        Ok(Interface {
+            level: InterfaceLevel::from(&interface["level"]),
+            slot,
+            port,
+            id,
+        })
     }
 }
 
@@ -80,8 +104,8 @@ impl TryFrom<Command> for Interface {
     type Error = Error;
 
     fn try_from(value: Command) -> Result<Self> {
-        let cmd = value.raw().to_string();
-        Interface::try_from(cmd)
+        let cmd = value.raw();
+        Interface::from_str(&cmd)
     }
 }
 
@@ -101,113 +125,4 @@ pub enum Titan {
     C620,
     C650,
     C600,
-}
-
-impl Olt {
-    pub fn builder() -> OltBuilder<NoSession, NoModel> {
-        OltBuilder::new()
-    }
-
-    pub fn enqueue(&mut self, command: Command) {
-        self.queue.push(command);
-    }
-
-    pub fn is_authenticated(&self) -> bool {
-        self.session.authenticated()
-    }
-
-    pub fn run(&self) -> Result<Vec<i32>> {
-        //let res = Box::new([Box::from(".")]);
-        let mut res = Vec::new();
-        for command in self.queue.iter() {
-            print!("{}: ", command.raw());
-            std::io::stdout().flush()?;
-
-            let mut channel: Channel;
-            match self.session.channel_session() {
-                Ok(c) => channel = c,
-                Err(e) => {
-                    println!("Erro {} ao abrir a sessão: {}", e.code(), e.message());
-                    continue;
-                }
-            }
-
-            let mut s = String::new();
-            match channel.exec(command.raw().trim()) {
-                Ok(_) => {
-                    channel.read_to_string(&mut s).unwrap();
-                }
-                Err(e) => match e.code() {
-                    ssh2::ErrorCode::Session(-22) => {
-                        println!("A requisição do canal foi negada.");
-                    }
-                    _ => panic!("{e}"),
-                },
-            }
-
-            channel.close()?;
-            channel.wait_close()?;
-
-            if let Ok(c) = channel.exit_status() {
-                res.push(c);
-            }
-        }
-        Ok(res)
-    }
-}
-
-#[derive(Default)]
-pub struct NoModel;
-#[derive(Default)]
-pub struct NoSession;
-
-impl OltBuilder<NoSession, NoModel> {
-    pub fn new() -> Self {
-        OltBuilder::default()
-    }
-}
-
-impl<S, M> OltBuilder<S, M> {
-    pub fn model(self, olt_model: OltModel) -> OltBuilder<S, OltModel> {
-        OltBuilder {
-            model: olt_model,
-            ip: self.ip,
-            port: self.port,
-        }
-    }
-
-    pub fn ip(self, ip: Ipv4Addr) -> OltBuilder<Ipv4Addr, M> {
-        OltBuilder {
-            ip,
-            model: self.model,
-            port: self.port,
-        }
-    }
-
-    pub fn port(self, port: u16) -> Self {
-        OltBuilder {
-            port: Some(port),
-            ..self
-        }
-    }
-}
-
-impl OltBuilder<Ipv4Addr, OltModel> {
-    pub fn build(self) -> Result<Olt> {
-        let mut session = Session::new()?;
-
-        let port = self.port.unwrap_or(22);
-        let addr = self.ip.to_string() + ":" + port.to_string().as_str();
-        let stream = TcpStream::connect(addr)?;
-
-        session.set_tcp_stream(stream);
-        session.handshake()?;
-        session.userauth_password("caiof", "Lab@2023")?;
-
-        Ok(Olt {
-            model: self.model,
-            session,
-            queue: Vec::new(),
-        })
-    }
 }

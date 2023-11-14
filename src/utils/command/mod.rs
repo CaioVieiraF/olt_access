@@ -6,7 +6,8 @@ use std::{fs::File, marker::PhantomData, rc::Rc};
 use crate::prelude::Result;
 
 use super::{
-    configuration::{ConfigInfo, GeneralParam},
+    configuration::Config,
+    configuration::ConfigInfo,
     olt::Interface,
     onu::{Onu, OnuService, Vlan},
 };
@@ -28,40 +29,41 @@ pub struct CmdArg3;
 pub struct CmdArg4;
 
 // Estrutura que armazena um comando
-pub struct Command {
-    raw: Rc<str>,
-}
+#[derive(Clone, Debug)]
+pub struct Command(pub Rc<str>);
 
 // Cria um comando a partir de um texto literal
 impl From<&str> for Command {
     fn from(value: &str) -> Command {
-        Command {
-            raw: Rc::from(value),
-        }
+        Command(value.into())
     }
 }
-
-// Cria um comando a partir de um ponteiro de
-// um texto literal
+// Cria um comando a partir de um ponteiro de texto
 impl From<Rc<str>> for Command {
     fn from(value: Rc<str>) -> Command {
-        Command { raw: value }
+        Command(value)
     }
 }
-
-// Cria um comando a partir de um texto
+// Cria um comando a partir de um texto literal
 impl From<String> for Command {
     fn from(value: String) -> Command {
-        Command {
-            raw: Rc::from(value),
-        }
+        Command(value.into())
+    }
+}
+impl std::fmt::Display for Command {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
 impl Command {
+    // Devolve o comando como um texto
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
     // Devolve o comando como um ponteiro de texto
     pub fn raw(&self) -> Rc<str> {
-        self.raw.clone()
+        self.0.clone()
     }
 
     // Comando "exit"
@@ -86,16 +88,19 @@ impl Command {
 
     // Abstração que gera um script de configuração de ONU
     // baseado nas informações de um arquivo
-    pub fn onu_script_from_file(general_info: File, equipment_info: File) -> Result<Vec<Command>> {
-        // Carrega os arquivos em estruturas conhecidas, caso esteja
+    pub fn onu_script_from_file(
+        equipment_info: File,
+        vlan: u16,
+        interface: Interface,
+    ) -> Result<Config> {
+        // Carrega o arquivo em uma estrutura conhecida, caso esteja
         // no formato certo
-        let params = GeneralParam::try_from(general_info)?;
         let configurations = ConfigInfo::from_file(equipment_info)?;
-        let mut configure_script = Vec::new();
+        let mut configure_script = Config::default();
 
         // Itera por cada configuração para criar um script de configuração para cada ONU.
-        for (i, config_info) in configurations.iter().enumerate() {
-            let mut vlan = Vlan::new(params.vlan);
+        for config_info in configurations.iter() {
+            let mut vlan = Vlan::new(vlan);
             vlan.pppoe(
                 config_info.pppoe_user.clone(),
                 config_info.pppoe_password.clone(),
@@ -104,15 +109,14 @@ impl Command {
             let services = vec![OnuService::new(vlan)];
             // Cria a ONU
             let onu = Onu::new(
-                (i + 1) as u8,
-                params.interface.interface(),
+                interface.clone(),
                 config_info.model.as_str(),
                 config_info.sn.as_str(),
                 services,
             );
             // Gera o script
             // Adiciona a configuração da ONU no script existente
-            configure_script.extend(onu.configure_script());
+            configure_script += onu.configure_script();
         }
 
         Ok(configure_script)
@@ -122,7 +126,7 @@ impl Command {
 // Estrutura que constroi um comando
 #[derive(Clone)]
 pub struct CommandBuilder<T: Clone, U: Clone> {
-    pub command: Rc<str>,
+    pub command: Command,
     command_level: PhantomData<T>,
     arg: PhantomData<U>,
 }
@@ -131,7 +135,7 @@ pub struct CommandBuilder<T: Clone, U: Clone> {
 impl CommandBuilder<ConfT, CmdArg0> {
     pub fn new() -> Self {
         CommandBuilder {
-            command: Rc::from("configure terminal"),
+            command: Command::from("configure terminal"),
             command_level: PhantomData,
             arg: PhantomData,
         }
@@ -139,17 +143,19 @@ impl CommandBuilder<ConfT, CmdArg0> {
 
     pub fn interface(self) -> CommandBuilder<Interface, CmdArg0> {
         CommandBuilder {
-            command: Rc::from("interface"),
+            command: Command::from("interface"),
             command_level: PhantomData,
             arg: PhantomData,
         }
     }
 
-    pub fn pon_onu_mng(self, pon_interface: (u8, u8, u8), id: u8) -> CommandBuilder<Omci, CmdArg0> {
+    pub fn pon_onu_mng(self, interface: &Interface) -> CommandBuilder<Omci, CmdArg0> {
         CommandBuilder {
             command: format!(
-                "pon-onu-mng gpon_onu-{}/{}/{}:{id}",
-                pon_interface.0, pon_interface.1, pon_interface.2
+                "pon-onu-mng gpon_onu-1/{}/{}:{}",
+                interface.slot,
+                interface.port,
+                interface.id.unwrap()
             )
             .into(),
             command_level: PhantomData,
